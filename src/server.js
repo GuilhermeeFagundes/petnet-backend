@@ -1,13 +1,10 @@
 const express = require('express');
 const app = express();
+const routes = require('./routes/index');
 
 app.use(express.json());
 
-app.get('/teste', (req, res) => {
-    res.status(200).json({
-        msg: 'teste!'
-    });
-});
+app.use('/api', routes);
     
 
 const PORT = process.env.PORT || 3000;
