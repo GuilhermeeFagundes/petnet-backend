@@ -9,7 +9,7 @@ datasource db {
 }
 
 model usu_usuarios {
-  usu_cpf           String    @id @db.Char(11) // A ORIGEM É CHAR(11)
+  usu_cpf           String    @id @db.Char(11) 
   usu_nome          String    @db.VarChar(100)
   usu_email         String    @unique(map: "usu_email") @db.VarChar(100)
   usu_senha         String    @db.VarChar(255)
@@ -28,7 +28,7 @@ model usu_usuarios {
 
 model con_contato {
   con_id       Int          @id @default(autoincrement())
-  con_usu_cpf  String       @db.Char(11) // CORRIGIDO: Deve ser Char(11)
+  con_usu_cpf  String       @db.Char(11) 
   con_nome     String       @db.VarChar(45)
   con_telefone String       @db.VarChar(11)
   
@@ -40,7 +40,7 @@ model con_contato {
 model end_endereco {
   end_id         Int          @id @default(autoincrement())
   end_tipo       String       @db.VarChar(45)
-  end_usu_cpf    String       @db.Char(11) // CORRIGIDO: Deve ser Char(11)
+  end_usu_cpf    String       @db.Char(11) 
   end_cep        String       @db.Char(8)
   end_logradouro String       @db.VarChar(150)
   end_estado     String       @db.Char(2)
@@ -55,7 +55,7 @@ model end_endereco {
 
 model pet_pet {
   pet_id              Int       @id @default(autoincrement())
-  pet_usu_cpf         String    @db.Char(11) // CORRIGIDO: Era VarChar, mudei para Char(11)
+  pet_usu_cpf         String    @db.Char(11) 
   pet_nome            String    @db.VarChar(50)
   pet_especie         String    @db.VarChar(50)
   pet_raca            String    @db.VarChar(50)
@@ -76,9 +76,9 @@ model pet_pet {
 
 model age_agendamento {
   age_id       Int      @id @default(autoincrement())
-  age_cli_cpf  String   @db.Char(11) // CORRIGIDO
+  age_cli_cpf  String   @db.Char(11) 
   age_pet_id   Int
-  age_col_cpf  String?  @db.Char(11) // CORRIGIDO
+  age_col_cpf  String?  @db.Char(11) 
   age_datahora DateTime @db.DateTime(0)
   age_status   age_agendamento_age_status
   
