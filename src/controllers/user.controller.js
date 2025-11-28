@@ -1,30 +1,37 @@
-import { createUser, listUsers} from "../repository/user.repository.js";
+import { createUserService, listUsersService} from "../services/user.service.js";
 
 export const createUserController = async (req, res) => {
     try {
         const userParam = req.body;
 
-        // DEBUG: Adicione este log para ver se os dados estão chegando
-        console.log("Dados recebidos no controller:", userParam);
-
-        if (!userParam) {
-            return res.status(400).json({ erro: "Corpo da requisição vazio" });
+        // validação da entrada dos campos obrigatórios
+        if (!userParam.usu_cpf, !userParam.usu_email, !userParam.usu_nome, !userParam.usu_senha ) {
+            return res.status(400).json({ erro: "Campos obrigatórios (CPF, nome, email e senha) faltando" });
         }
         
-        const user = await createUser(userParam);
+        const user = await createUserService(userParam);
         
         return res.status(201).json(user);
+
     } catch (error) {
-        console.error("Erro no controller:", error);
-        return res.status(500).json({ erro: "Erro ao criar usuário", detalhe: error.message });
+        
+        // Se o erro for de regra de negócio
+        return res.status(400).json({ 
+            erro: error.message });
     }
 };
 
 export const listUsersController = async (req, res) => {
     
-    const users = await listUsers();
+    try {
 
-    return res.status(200).json(users)
+        const users = await listUsersService();
+        return res.status(200).json(users)
 
+    }  catch(erro){
+
+        return res.status(500).json({erro : "Erro ao listar os usuário"});
+
+    }
 }
 
