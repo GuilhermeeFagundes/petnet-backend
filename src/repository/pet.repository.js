@@ -1,7 +1,5 @@
 import prisma from '../prisma.js';
 
-// e usa prisma normalmente
-
 
 const listPets = async () => {
     return await prisma.pet_pet.findMany({
