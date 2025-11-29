@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -8,117 +7,211 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model age_agendamento {
-  age_id                                                 Int                           @id @default(autoincrement())
-  age_cli_cpf                                            String                        @db.Char(11)
-  age_pet_id                                             Int
-  age_col_cpf                                            String?                       @db.Char(11)
-  age_datahora                                           DateTime                      @db.DateTime(0)
-  age_status                                             age_agendamento_age_status
-  usu_usuarios_age_agendamento_age_cli_cpfTousu_usuarios usu_usuarios                  @relation("age_agendamento_age_cli_cpfTousu_usuarios", fields: [age_cli_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "age_agendamento_ibfk_1")
-  pet_pet                                                pet_pet                       @relation(fields: [age_pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction, map: "age_agendamento_ibfk_2")
-  usu_usuarios_age_agendamento_age_col_cpfTousu_usuarios usu_usuarios?                 @relation("age_agendamento_age_col_cpfTousu_usuarios", fields: [age_col_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "age_agendamento_ibfk_3")
-  spa_servico_por_agendamento                            spa_servico_por_agendamento[]
+// ------------------ INFORMAÇÃO ----------------
 
-  @@index([age_cli_cpf], map: "age_cli_cpf")
-  @@index([age_col_cpf], map: "age_col_cpf")
-  @@index([age_pet_id], map: "age_pet_id")
-}
+// estamos adotando o padrão english_us para nomes de tabelas e colunas
+// por se tratar de um padrão mais utilizado no mercado de desenvolvimento
+// e também por facilitar a integração com outras ferramentas e tecnologias.
 
-model con_contato {
-  con_id       Int          @id @default(autoincrement())
-  con_usu_cpf  String       @db.Char(11)
-  con_nome     String       @db.VarChar(45)
-  con_telefone String       @db.VarChar(11)
-  usu_usuarios usu_usuarios @relation(fields: [con_usu_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_con_contato_usu_usuarios1")
+// ------------------ DETALHES ------------------
 
-  @@index([con_usu_cpf], map: "fk_con_contato_usu_usuarios1_idx")
-}
+// Ao converter as tabelas e colunas do banco de dados para o inglês,
+// evitar ao maximo modificações que possam impactar na estrutura do banco de dados,
+// mantendo a integridade e funcionalidade do sistema.
 
-model end_endereco {
-  end_id         Int          @id @default(autoincrement())
-  end_tipo       String       @db.VarChar(45)
-  end_usu_cpf    String       @db.Char(11)
-  end_cep        String       @db.Char(8)
-  end_logradouro String       @db.VarChar(150)
-  end_estado     String       @db.Char(2)
-  end_cidade     String       @db.VarChar(50)
-  end_bairro     String       @db.VarChar(45)
-  end_numero     String       @db.VarChar(10)
-  usu_usuarios   usu_usuarios @relation(fields: [end_usu_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_end_endereco_usu_usuarios")
+// CASO SEJA NECESSÁRIO FAZER ALGUMA MODIFICAÇÃO, favor informar no grupo de desenvolvimento.
 
-  @@index([end_usu_cpf], map: "fk_end_endereco_usu_usuarios_idx")
-}
+// ------------------ MODELS ------------------
 
-model pet_pet {
-  pet_id              Int               @id @default(autoincrement())
-  pet_usu_cpf         String            @db.Char(11)
-  pet_nome            String            @db.VarChar(50)
-  pet_especie         String            @db.VarChar(50)
-  pet_raca            String            @db.VarChar(50)
-  pet_porte           String            @db.Char(1)
-  pet_data_nascimento DateTime?         @db.Date
-  pet_peso            Decimal?          @db.Decimal(5, 2)
-  pet_sexo            pet_pet_pet_sexo?
-  pet_foto_url        String?           @db.VarChar(255)
-  pet_observacoes     String?           @db.Text
-  pet_data_cadastro   DateTime          @default(now()) @db.DateTime(0)
-  pet_data_exclusao   DateTime?         @db.DateTime(0)
-  age_agendamento     age_agendamento[]
-  usu_usuarios        usu_usuarios      @relation(fields: [pet_usu_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "pet_pet_ibfk_1")
-
-  @@index([pet_usu_cpf], map: "pet_usu_cpf")
-}
-
-model ser_servico {
-  ser_id                      Int                           @id @default(autoincrement())
-  ser_nome                    String                        @db.VarChar(58)
-  ser_descricao               String                        @db.VarChar(300)
-  ser_ativo                   Boolean?                      @default(true)
-  spa_servico_por_agendamento spa_servico_por_agendamento[]
-}
-
-model spa_servico_por_agendamento {
-  spa_age_id      Int
-  spa_ser_id      Int
-  age_agendamento age_agendamento @relation(fields: [spa_age_id], references: [age_id], onDelete: NoAction, onUpdate: NoAction, map: "spa_servico_por_agendamento_ibfk_1")
-  ser_servico     ser_servico     @relation(fields: [spa_ser_id], references: [ser_id], onDelete: NoAction, onUpdate: NoAction, map: "spa_servico_por_agendamento_ibfk_2")
-
-  @@id([spa_age_id, spa_ser_id])
-  @@index([spa_ser_id], map: "spa_ser_id")
-}
-
-model usu_usuarios {
-  usu_cpf                                                   String                @id @db.Char(11)
-  usu_nome                                                  String                @db.VarChar(100)
-  usu_email                                                 String                @unique(map: "usu_email") @db.VarChar(100)
-  usu_senha                                                 String                @db.VarChar(255)
-  usu_foto_url                                              String?               @db.VarChar(255)
-  usu_tipo                                                  usu_usuarios_usu_tipo
-  usu_data_exclusao                                         DateTime?             @db.DateTime(0)
-  usu_data_cadastro                                         DateTime              @default(now()) @db.DateTime(0)
-  age_agendamento_age_agendamento_age_cli_cpfTousu_usuarios age_agendamento[]     @relation("age_agendamento_age_cli_cpfTousu_usuarios")
-  age_agendamento_age_agendamento_age_col_cpfTousu_usuarios age_agendamento[]     @relation("age_agendamento_age_col_cpfTousu_usuarios")
-  con_contato                                               con_contato[]
-  end_endereco                                              end_endereco[]
-  pet_pet                                                   pet_pet[]
-}
-
-enum age_agendamento_age_status {
-  Agendado
-  Confirmado
-  N_o_confirmado @map("Não confirmado")
-  Em_andamento   @map("Em andamento")
-  Finalizado
-}
-
-enum usu_usuarios_usu_tipo {
+// enum usu_usuarios_usu_tipo {
+//   Cliente
+//   Gerente
+//   Colaborador
+// }
+enum user_type {
   Cliente
   Gerente
   Colaborador
 }
 
-enum pet_pet_pet_sexo {
+// model usu_usuarios {
+//   usu_cpf                                                   String                @id @db.Char(11)
+//   usu_nome                                                  String                @db.VarChar(100)
+//   usu_email                                                 String                @unique(map: "usu_email") @db.VarChar(100)
+//   usu_senha                                                 String                @db.VarChar(255)
+//   usu_foto_url                                              String?               @db.VarChar(255)
+//   usu_tipo                                                  usu_usuarios_usu_tipo
+//   usu_data_exclusao                                         DateTime?             @db.DateTime(0)
+//   usu_data_cadastro                                         DateTime              @default(now()) @db.DateTime(0)
+//   age_agendamento_age_agendamento_age_cli_cpfTousu_usuarios age_agendamento[]     @relation("age_agendamento_age_cli_cpfTousu_usuarios")
+//   age_agendamento_age_agendamento_age_col_cpfTousu_usuarios age_agendamento[]     @relation("age_agendamento_age_col_cpfTousu_usuarios")
+//   con_contato                                               con_contato[]
+//   end_endereco                                              end_endereco[]
+//   pet_pet                                                   pet_pet[]
+// }
+model user {
+  cpf         String    @id @db.Char(11)
+  name        String    @db.VarChar(100)
+  email       String    @unique(map: "usu_email") @db.VarChar(100)
+  password    String    @db.VarChar(255)
+  picture_url String?   @db.VarChar(255)
+  type        user_type
+  created_at  DateTime  @default(now()) @db.DateTime(0)
+  excluded_at DateTime? @db.DateTime(0)
+  contacts    contact[]
+  addresses   address[]
+  pets        pet[]
+  // age_agendamento_age_agendamento_age_cli_cpfTousu_usuarios age_agendamento[]     @relation("age_agendamento_age_cli_cpfTousu_usuarios")
+  // age_agendamento_age_agendamento_age_col_cpfTousu_usuarios age_agendamento[]     @relation("age_agendamento_age_col_cpfTousu_usuarios")
+}
+
+// model con_contato {
+//   con_id       Int          @id @default(autoincrement())
+//   con_usu_cpf  String       @db.Char(11)
+//   con_nome     String       @db.VarChar(45)
+//   con_telefone String       @db.VarChar(11)
+//   usu_usuarios usu_usuarios @relation(fields: [con_usu_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_con_contato_usu_usuarios1")
+
+//   @@index([con_usu_cpf], map: "fk_con_contato_usu_usuarios1_idx")
+// }
+model contact {
+  id       Int     @id @default(autoincrement())
+  user_cpf String  @db.Char(11)
+  name     String  @db.VarChar(45)
+  number   String? @db.VarChar(20)
+  user     user    @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_contact_user_cpf")
+
+  @@index([user_cpf], map: "contact_user_cpf_idx")
+}
+
+// model end_endereco {
+//   end_id         Int          @id @default(autoincrement())
+//   end_tipo       String       @db.VarChar(45)
+//   end_usu_cpf    String       @db.Char(11)
+//   end_cep        String       @db.Char(8)
+//   end_logradouro String       @db.VarChar(150)
+//   end_estado     String       @db.Char(2)
+//   end_cidade     String       @db.VarChar(50)
+//   end_bairro     String       @db.VarChar(45)
+//   end_numero     String       @db.VarChar(10)
+//   usu_usuarios   usu_usuarios @relation(fields: [end_usu_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_end_endereco_usu_usuarios")
+
+//   @@index([end_usu_cpf], map: "fk_end_endereco_usu_usuarios_idx")
+// }
+model address {
+  id         Int     @id @default(autoincrement())
+  type       String  @db.VarChar(45)
+  user_cpf   String  @db.Char(11)
+  cep        String  @db.Char(8)
+  location   String  @db.VarChar(150)
+  complement String? @db.VarChar(10)
+  user       user    @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_address_user_cpf")
+
+  @@index([user_cpf], map: "address_user_cpf_idx")
+}
+
+// model pet_pet {
+//   pet_id              Int               @id @default(autoincrement())
+//   pet_usu_cpf         String            @db.Char(11)
+//   pet_nome            String            @db.VarChar(50)
+//   pet_especie         String            @db.VarChar(50)
+//   pet_raca            String            @db.VarChar(50)
+//   pet_porte           String            @db.Char(1)
+//   pet_data_nascimento DateTime?         @db.Date
+//   pet_peso            Decimal?          @db.Decimal(5, 2)
+//   pet_sexo            pet_pet_pet_sexo?
+//   pet_foto_url        String?           @db.VarChar(255)
+//   pet_observacoes     String?           @db.Text
+//   pet_data_cadastro   DateTime          @default(now()) @db.DateTime(0)
+//   pet_data_exclusao   DateTime?         @db.DateTime(0)
+//   age_agendamento     age_agendamento[]
+//   usu_usuarios        usu_usuarios      @relation(fields: [pet_usu_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "pet_pet_ibfk_1")
+
+//   @@index([pet_usu_cpf], map: "pet_usu_cpf")
+// }
+
+model pet {
+  id           Int         @id @default(autoincrement())
+  user_cpf     String      @db.Char(11)
+  name         String      @db.VarChar(50)
+  species      pet_species
+  breed        String?     @db.VarChar(50)
+  size         pet_size
+  birth_date   DateTime?   @db.Date
+  weight       Decimal?    @db.Decimal(5, 2)
+  sex          pet_sex?
+  picture_url  String?     @db.VarChar(255)
+  observations String?     @db.Text
+  created_at   DateTime    @default(now()) @db.DateTime(0)
+  excluded_at  DateTime?   @db.DateTime(0)
+
+  user user @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_pet_user_cpf")
+  // age_agendamento     age_agendamento[]
+
+  @@index([user_cpf], map: "fk_pet_user_cpf_idx")
+}
+
+enum pet_species {
+  dog // Cachorro
+  cat // Gato
+}
+
+enum pet_size {
+  S // Pequeno
+  M // Médio
+  L // Grande
+  G // Gigante
+}
+
+enum pet_sex {
   M
   F
 }
+
+// model age_agendamento {
+//   age_id                                                 Int                           @id @default(autoincrement())
+//   age_cli_cpf                                            String                        @db.Char(11)
+//   age_pet_id                                             Int
+//   age_col_cpf                                            String?                       @db.Char(11)
+//   age_datahora                                           DateTime                      @db.DateTime(0)
+//   age_status                                             age_agendamento_age_status
+//   usu_usuarios_age_agendamento_age_cli_cpfTousu_usuarios usu_usuarios                  @relation("age_agendamento_age_cli_cpfTousu_usuarios", fields: [age_cli_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "age_agendamento_ibfk_1")
+//   pet_pet                                                pet_pet                       @relation(fields: [age_pet_id], references: [pet_id], onDelete: NoAction, onUpdate: NoAction, map: "age_agendamento_ibfk_2")
+//   usu_usuarios_age_agendamento_age_col_cpfTousu_usuarios usu_usuarios?                 @relation("age_agendamento_age_col_cpfTousu_usuarios", fields: [age_col_cpf], references: [usu_cpf], onDelete: NoAction, onUpdate: NoAction, map: "age_agendamento_ibfk_3")
+//   spa_servico_por_agendamento                            spa_servico_por_agendamento[]
+
+//   @@index([age_cli_cpf], map: "age_cli_cpf")
+//   @@index([age_col_cpf], map: "age_col_cpf")
+//   @@index([age_pet_id], map: "age_pet_id")
+// }
+
+// model ser_servico {
+//   ser_id                      Int                           @id @default(autoincrement())
+//   ser_nome                    String                        @db.VarChar(58)
+//   ser_descricao               String                        @db.VarChar(300)
+//   ser_ativo                   Boolean?                      @default(true)
+//   spa_servico_por_agendamento spa_servico_por_agendamento[]
+// }
+
+// model spa_servico_por_agendamento {
+//   spa_age_id      Int
+//   spa_ser_id      Int
+//   age_agendamento age_agendamento @relation(fields: [spa_age_id], references: [age_id], onDelete: NoAction, onUpdate: NoAction, map: "spa_servico_por_agendamento_ibfk_1")
+//   ser_servico     ser_servico     @relation(fields: [spa_ser_id], references: [ser_id], onDelete: NoAction, onUpdate: NoAction, map: "spa_servico_por_agendamento_ibfk_2")
+
+//   @@id([spa_age_id, spa_ser_id])
+//   @@index([spa_ser_id], map: "spa_ser_id")
+// }
+
+// enum age_agendamento_age_status {
+//   Agendado
+//   Confirmado
+//   N_o_confirmado @map("Não confirmado")
+//   Em_andamento   @map("Em andamento")
+//   Finalizado
+// }
+
+// enum pet_pet_pet_sexo {
+//   M
+//   F
+// }

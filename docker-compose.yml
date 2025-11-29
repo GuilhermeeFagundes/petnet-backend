@@ -1,0 +1,65 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: petnet-db
+    ports:
+      - "5678:3306"
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: petnet
+      MYSQL_DATABASE: petnet_development
+      MYSQL_USER: petnet
+      MYSQL_PASSWORD: petnet
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u$$MYSQL_USER",
+          "-p$$MYSQL_PASSWORD",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: petnet-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "mysql://petnet:petnet@db:3306/petnet_development"
+      PORT: 3000
+      NODE_ENV: development
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: prisma/schema.prisma
+
+volumes:
+  db_data:

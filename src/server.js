@@ -4,12 +4,12 @@ import routes from './routes/index.js'; // Importa as rotas (e não o controller
 
 const app = express();
 
-app.use( express.json() );
-app.use( cors() );
+app.use(express.json());
+app.use(cors());
 
 // Rota de verificação (Health Check)
 app.get('/healthcheck', (req, res) => {
-  return res.json({ mensagem: "Servidor PetNet está online! 🚀" });
+  return res.json("Servidor PetNet está online! 🚀");
 });
 
 // Configura o uso das rotas de usuário
@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`
     Servidor rodando na porta ${PORT} 🚀
-    
+
     http://localhos:${PORT}/healthcheck
   `);
 });
