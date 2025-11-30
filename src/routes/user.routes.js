@@ -3,7 +3,8 @@ import {
     createUserController, 
     listUsersController,
     deleteUserController,
-    updatePersonalDataController
+    updatePersonalDataController,
+    updateAddresController
 
 } from '../controllers/user.controller.js';
 // import { ensureAuthenticated, ensureAdministrator, ensureAdministratorOrSelf } from '../middlewares/auth';
@@ -16,7 +17,8 @@ const userRouter = Router();
 userRouter.post('/', createUserController);
 userRouter.get('/', listUsersController);
 userRouter.delete('/:usu_cpf', deleteUserController);
-userRouter.patch('/:usu_cpf', updatePersonalDataController)
+userRouter.patch('/:usu_cpf', updatePersonalDataController);
+userRouter.put('/:usu_cpf/:end_id', updateAddresController);
 
 
 // userRouter.use(ensureAuthenticated);
