@@ -3,7 +3,6 @@ import prisma from '../prisma.js';
 
 // criar usuarios
 export const createUser = async (userData) => {
->>>>>>> main
 
     return await prisma.usu_usuarios.create({
         data: userData, 
