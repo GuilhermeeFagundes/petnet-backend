@@ -4,7 +4,8 @@ import {
     findUserByEmail,
     listUsers,
     deleteUser,
-    updatePersonalDate
+    updatePersonalDate,
+    updateAddres,
 } from '../repository/user.repository.js';
 
 export const createUserService = async (userData) => {
@@ -85,7 +86,7 @@ export const listUsersService = async() => {
 
 }
 
-export const updatePersonalDataService = async (userCPF, dadosAtualizacao) => {
+export const updatePersonalDataService = async (userCPF, updateData) => {
 
     // Passo 1: Verificar se o usuário existe
     const userExists = await findUserByCpf(userCPF);
@@ -95,12 +96,12 @@ export const updatePersonalDataService = async (userCPF, dadosAtualizacao) => {
     }
 
     // Passo 2: Extrair os dados que queremos atualizar
-    // 'dadosAtualizacao' é o objeto que vem do req.body (ex: { usu_nome: "Novo Nome", ... })
+    // 'updateData' é o objeto que vem do req.body (ex: { usu_nome: "Novo Nome", ... })
     const { 
         usu_nome, 
         usu_email, 
         con_telefone 
-    } = dadosAtualizacao;
+    } = updateData;
 
     // Passo 3: (Opcional) Se o usuário estiver mudando de e-mail,
     // validar se o novo e-mail já não pertence a outra pessoa.
@@ -121,6 +122,33 @@ export const updatePersonalDataService = async (userCPF, dadosAtualizacao) => {
 
     return userUpdated;
 };
+
+export const updateAddresService = async(userCPF, addresID, addresData) => {
+
+    const findUser = await findUserByCpf(userCPF);
+
+    if(!findUser){
+
+        throw new Error("CPF não existe!");
+
+    }
+
+
+    const newAddres = await updateAddres(userCPF,addresID, addresData);
+
+    if (newAddres.count === 0) {
+
+        throw new Error("Endereço não encontrado ou não pertence a este usuário.");
+
+    }
+
+     return { 
+        mensagem: "Endereço atualizado com sucesso",
+        dados: addresData 
+    };
+
+
+}
 
 export const deleteUserService = async(userCPF) => {
 

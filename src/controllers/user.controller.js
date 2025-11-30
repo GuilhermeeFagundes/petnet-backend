@@ -2,7 +2,8 @@ import {
     createUserService,
     listUsersService,
     deleteUserService,
-    updatePersonalDataService
+    updatePersonalDataService,
+    updateAddresService
 } from "../services/user.service.js";
 
 export const createUserController = async (req, res) => {
@@ -47,7 +48,7 @@ export const updatePersonalDataController = async (req, res) => {
         const { usu_cpf } = req.params; 
         
         // Dados novos do corpo da requisição
-        const dadosAtualizacao = req.body;
+        const updateData = req.body;
 
         // Valida se a rota não pasar o CPF 
         if (!usu_cpf) {
@@ -55,11 +56,11 @@ export const updatePersonalDataController = async (req, res) => {
         }
 
         // Valida se o corpo vier vazio 
-        if (Object.keys(dadosAtualizacao).length === 0) {
+        if (Object.keys(updateData).length === 0) {
             return res.status(400).json({ erro: "Nenhum dado fornecido para atualização." });
         }
 
-        const updatedUser = await updatePersonalDataService(usu_cpf, dadosAtualizacao);
+        const updatedUser = await updatePersonalDataService(usu_cpf, updateData);
         return res.status(200).json(updatedUser);
 
     } catch (erro) {
@@ -67,6 +68,50 @@ export const updatePersonalDataController = async (req, res) => {
         return res.status(400).json({ erro: erro.message });
     }
 };
+
+export const updateAddresController = async (req, res) => {
+
+    try{
+        
+        const {usu_cpf, end_id} = req.params;
+
+        const addresData = req.body;
+
+        console.log("Body recebido:", req.body);
+
+        if (Object.keys(addresData).length === 0) {
+
+            return res.status(400).json({ erro: "Nenhum dado fornecido para atualização." });
+
+        }
+
+        const {
+            end_tipo,
+            end_cep,
+            end_cidade,
+            end_bairro,
+            end_logradouro,
+            end_numero
+        } = addresData;
+
+        console.log("Variáveis:", { end_tipo, end_cep, end_logradouro });
+
+        if(!end_tipo || !end_cep || !end_cidade || !end_bairro || !end_logradouro || !end_numero){
+
+            return res.status(400).json({ erro: "Todos os campos obrigatórios precisam ser preenchidos." });
+
+        }
+
+        const updatedAddres = await updateAddresService(usu_cpf, end_id, addresData);
+        return res.status(200).json(updatedAddres)
+
+    
+    }catch (erro){
+
+        return res.status(400).json({ erro: erro.message})
+
+    }
+}
 
 export const deleteUserController = async (req, res) => {
 

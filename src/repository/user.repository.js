@@ -1,8 +1,6 @@
 import prisma from '../prisma.js';
 
 
-const prisma = new PrismaClient();
-
 // criar usuarios
 export const createUser = async (userData) => {
 
@@ -67,6 +65,17 @@ export const updatePersonalDate = async (userCPF, usu_name, usu_email, con_telef
 }
 
 // Update endereço
+export const updateAddres = async(userCPF, addresId, addresData) => {
+
+    return await prisma.end_endereco.updateMany({
+        where: {
+            end_usu_cpf: userCPF,
+            end_id: Number(addresId)
+        },
+        data : addresData
+    });
+
+}
 
 // Soft delete de usuário pelo id
 export const deleteUser = async (userCPF) => {
