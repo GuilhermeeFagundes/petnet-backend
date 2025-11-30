@@ -1,5 +1,6 @@
 import prisma from '../prisma.js';
 
+// listar Pets
 const listPets = async () => {
     return await prisma.pet_pet.findMany({
         where: {
@@ -8,6 +9,7 @@ const listPets = async () => {
     })
 }
 
+// Encontrar Pet por id
 const findPetById = async (id) => {
     return await prisma.pet_pet.findFirst({
         where: {
@@ -17,6 +19,7 @@ const findPetById = async (id) => {
     });
 }
 
+// Criar Pet
 const createPet = async (data) => {
     return await prisma.pet_pet.create({
         data
@@ -24,6 +27,7 @@ const createPet = async (data) => {
 };
 
 
+// Atualizar Pet
 const updatePet = async (id, data) => {
     return await prisma.pet_pet.update({
         where: { pet_id: Number(id) },
@@ -31,6 +35,7 @@ const updatePet = async (id, data) => {
     });
 };
 
+// Deletar Pet(gera a data de exclusão)
 const deletePet = async (id) => {
     return await prisma.pet_pet.update({
         where: { pet_id: Number(id) },

@@ -15,7 +15,7 @@ export const findPetByIdService = async (id) => {
 
 
 export const createPetService = async (data) => {
-    const { pet_raca, pet_especie, pet_nome, pet_data_nascimento } = data;
+    const { pet_raca, pet_especie, pet_nome} = data;
 
     //RN02: Clientes devem cadastrar o pet apenas com os campos obrigatórios (raça, espécie, nome e data de nascimendo).
 
