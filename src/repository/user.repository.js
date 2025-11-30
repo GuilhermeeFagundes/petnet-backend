@@ -1,18 +1,38 @@
 import prisma from '../prisma.js';
 
-// criar usuários
-export const createUser = async (dadoUsuario) => {
-    // DEBUG: Adicione este log
-    console.log("Dados chegando no repositório:", dadoUsuario);
+
+// criar usuarios
+export const createUser = async (userData) => {
+>>>>>>> main
 
     return await prisma.usu_usuarios.create({
-        data: dadoUsuario, // Aqui é onde o erro diz que está faltando
+        data: userData, 
     });
 };
 
-// listar todos os usuários
-export const listUsers = async () => {
+// encontrar usuario por email
+export const findUserByEmail = async (userEmail) => {
 
-    return await prisma.usu_usuarios.findMany();
+    return await prisma.usu_usuarios.findUnique({
+        where: {usu_email : userEmail},
+    });
 
 }
+
+// econtrar usuario por cpf
+export const findeUserByCpf = async (userCPF) => {
+
+    return await prisma.usu_usuarios.findUnique({
+        where: {usu_cpf : userCPF},
+    });
+}
+
+// listar todos os usuarios
+export const listUsers = async () => {
+
+    return await prisma.usu_usuarios.findMany({
+        where: {usu_data_exclusao : null}
+    });
+
+}
+
