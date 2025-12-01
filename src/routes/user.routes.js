@@ -1,5 +1,12 @@
 import { Router } from 'express';
-import { createUserController, listUsersController} from '../controllers/user.controller.js';
+import { 
+    createUserController, 
+    listUsersController,
+    deleteUserController,
+    updatePersonalDataController,
+    updateAddresController
+
+} from '../controllers/user.controller.js';
 // import { ensureAuthenticated, ensureAdministrator, ensureAdministratorOrSelf } from '../middlewares/auth';
 
 const userRouter = Router();
@@ -7,9 +14,11 @@ const userRouter = Router();
 
 
 
-userRouter.post('/', createUserController)
-userRouter.get('/', listUsersController)
-
+userRouter.post('/', createUserController);
+userRouter.get('/', listUsersController);
+userRouter.delete('/:usu_cpf', deleteUserController);
+userRouter.patch('/:usu_cpf', updatePersonalDataController);
+userRouter.put('/:usu_cpf/:end_id', updateAddresController);
 
 
 // userRouter.use(ensureAuthenticated);
