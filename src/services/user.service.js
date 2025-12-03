@@ -1,4 +1,6 @@
 import bcrypt from 'bcrypt';
+
+import { sanitizeData } from "../middlewares/utils.middleware.js";
 import { listUsers, findUserByCpf, findUserByEmail, createUser, updateUser, deleteUser } from '../repository/user.repository.js';
 
 export const listUsersService = async () => {
