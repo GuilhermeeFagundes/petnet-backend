@@ -1,91 +1,79 @@
-import prisma from '../prisma.js';
-
-
-// criar usuarios
-export const createUser = async (userData) => {
-
-    return await prisma.usu_usuarios.create({
-        data: userData,
-        include: {
-            end_endereco: true,
-            con_contato: true,
-        }
-    });
-};
-
-// encontrar usuario por email
-export const findUserByEmail = async (userEmail) => {
-
-    return await prisma.usu_usuarios.findUnique({
-        where: { usu_email: userEmail },
-    });
-
-}
-
-// econtrar usuario por cpf
-export const findUserByCpf = async (userCPF) => {
-
-    return await prisma.usu_usuarios.findUnique({
-        where: { usu_cpf: userCPF },
-    });
-}
+import prisma from '../../prisma/prisma.js';
 
 // listar todos os usuarios
-export const listUsers = async () => {
-
-    return await prisma.usu_usuarios.findMany({
-        where: { usu_data_exclusao: null }
+const listUsers = async () => {
+    return await prisma.user.findMany({
+        where: { excluded_at: null }
     });
+}
 
+// encontrar usuario por email
+const findUserByEmail = async (userEmail) => {
+    return await prisma.user.findUnique({
+        where: { email: userEmail },
+    });
+}
+
+// encontrar usuario por cpf
+const findUserByCpf = async (userCPF) => {
+    return await prisma.user.findUnique({
+        where: { cpf: userCPF },
+    });
+}
+
+// criar usuários
+const createUser = async (userData) => {
+    return await prisma.user.create({
+        data: userData,
+    });
 }
 
 // Update dados pessoais
-export const updatePersonalDate = async (userCPF, usu_name, usu_email, con_telefone) => {
-
-    return await prisma.usu_usuarios.update({
-        where: {
-            usu_cpf: userCPF
-        },
-        data: {
-            usu_nome: usu_name,
-            usu_email: usu_email,
-
-            con_contato: con_telefone ? {
-                updateMany: {
-                    where: { con_usu_cpf: userCPF },
-                    data: { con_telefone: con_telefone }
-                }
-            } : undefined
-        },
-
-        include: {
-            con_contato: true
-        }
+const updateUser = async (userCPF, userData) => {
+    return await prisma.user.update({
+        where: { cpf: userCPF },
+        data: userData
     })
 }
 
-// Update endereço
-export const updateAddres = async(userCPF, addresId, addresData) => {
-
-    return await prisma.end_endereco.updateMany({
-        where: {
-            end_usu_cpf: userCPF,
-            end_id: Number(addresId)
-        },
-        data : addresData
+// Soft delete de usuário pelo id
+const deleteUser = async (userCPF) => {
+    return await prisma.user.update({
+        where: { cpf: userCPF },
+        data: { excluded_at: new Date() }
     });
-
 }
 
-// Soft delete de usuário pelo id
-export const deleteUser = async (userCPF) => {
-
-    return await prisma.usu_usuarios.update({
-        where: {
-            usu_cpf: userCPF
-        },
+// Contato
+const createContact = async (userCPF, contactData) => {
+    return await prisma.contact.create({
         data: {
-            usu_data_exclusao: new Date()
+            ...contactData,
+            user_cpf: userCPF
         }
     });
 }
+
+const removeContact = async (contactId) => {
+    return await prisma.contact.delete({
+        where: { id: Number(contactId) }
+    });
+}
+
+// Endereço
+const createAddress = async (userCPF, addressData) => {
+    return await prisma.address.create({
+        data: {
+            ...addressData,
+            user_cpf: userCPF
+        }
+    });
+}
+
+const removeAddress = async (addressId) => {
+    return await prisma.address.delete({
+        where: { id: Number(addressId) }
+    });
+}
+
+export { listUsers, findUserByEmail, findUserByCpf, createUser, updateUser, deleteUser, createContact, removeContact, createAddress, removeAddress };

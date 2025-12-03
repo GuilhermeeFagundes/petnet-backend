@@ -1,52 +1,43 @@
-import prisma from '../prisma.js';
+import prisma from '../../prisma/prisma.js';
 
 // listar Pets
 const listPets = async () => {
-    return await prisma.pet_pet.findMany({
-        where: {
-            pet_data_exclusao: null
-        }
+    return await prisma.pet.findMany({
+        where: { excluded_at: null }
     })
 }
 
 // Encontrar Pet por id
-const findPetById = async (id) => {
-    return await prisma.pet_pet.findFirst({
+const findPetById = async (petId) => {
+    return await prisma.pet.findFirst({
         where: {
-            pet_id: Number(id),
-            pet_data_exclusao: null
+            id: Number(petId),
+            excluded_at: null
         }
     });
 }
 
 // Criar Pet
-const createPet = async (data) => {
-    return await prisma.pet_pet.create({
-        data
+const createPet = async (petData) => {
+    return await prisma.pet.create({
+        data: petData
     });
-};
-
+}
 
 // Atualizar Pet
-const updatePet = async (id, data) => {
-    return await prisma.pet_pet.update({
-        where: { pet_id: Number(id) },
-        data
+const updatePet = async (petId, petData) => {
+    return await prisma.pet.update({
+        where: { id: Number(petId) },
+        data: petData
     });
 };
 
 // Deletar Pet(gera a data de exclusão)
-const deletePet = async (id) => {
-    return await prisma.pet_pet.update({
-        where: { pet_id: Number(id) },
-        data: { pet_data_exclusao: new Date() }
+const deletePet = async (petId) => {
+    return await prisma.pet.update({
+        where: { id: Number(petId) },
+        data: { excluded_at: new Date() }
     });
 }
 
-export default {
-    listPets,
-    findPetById,
-    createPet,
-    updatePet,
-    deletePet
-};
+export default { listPets, findPetById, createPet, updatePet, deletePet };
