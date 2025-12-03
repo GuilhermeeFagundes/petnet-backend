@@ -1,138 +1,97 @@
-import {
-    createUserService,
-    listUsersService,
-    deleteUserService,
-    updatePersonalDataService,
-    updateAddresService
-} from "../services/user.service.js";
-
-export const createUserController = async (req, res) => {
-    try {
-        const userParam = req.body;
-
-        // validação da entrada dos campos obrigatórios
-        if (!userParam.usu_cpf, !userParam.usu_email, !userParam.usu_nome, !userParam.usu_senha) {
-            return res.status(400).json({ erro: "Campos obrigatórios (CPF, nome, email e senha) faltando" });
-        }
-
-        const user = await createUserService(userParam);
-
-        return res.status(201).json(user);
-
-    } catch (error) {
-
-        // Se o erro for de regra de negócio
-        return res.status(400).json({
-            erro: error.message
-        });
-    }
-};
+import { createUserService, listUsersService, deleteUserService, updateUserService, createAddressService } from "../services/user.service.js";
 
 export const listUsersController = async (req, res) => {
-
     try {
-
         const users = await listUsersService();
         return res.status(200).json(users)
 
-    } catch (erro) {
-
-        return res.status(500).json({ erro: "Erro ao listar os usuário" });
-
+    } catch (error) {
+        return res.status(400).json({ error: "Erro ao listar usuários" });
     }
 }
 
-export const updatePersonalDataController = async (req, res) => {
+export const createUserController = async (req, res) => {
     try {
-        
-        const { usu_cpf } = req.params; 
-        
-        // Dados novos do corpo da requisição
-        const updateData = req.body;
+        const userParams = req.body;
+        const { user_cpf, usu_email, usu_nome, usu_senha } = userParams;
 
-        // Valida se a rota não pasar o CPF 
-        if (!usu_cpf) {
-            return res.status(400).json({ erro: "CPF não informado na URL." });
+        // validação da entrada dos campos obrigatórios
+        if (!user_cpf || !usu_email || !usu_nome || !usu_senha) {
+            return res.status(400).json({ error: "Campos obrigatórios faltando. (cpf, name, email e password)" });
         }
 
-        // Valida se o corpo vier vazio 
-        if (Object.keys(updateData).length === 0) {
-            return res.status(400).json({ erro: "Nenhum dado fornecido para atualização." });
-        }
+        const newUser = await createUserService(userParams);
 
-        const updatedUser = await updatePersonalDataService(usu_cpf, updateData);
-        return res.status(200).json(updatedUser);
-
-    } catch (erro) {
-        
-        return res.status(400).json({ erro: erro.message });
+        return res.status(201).json(newUser);
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
     }
 };
 
-export const updateAddresController = async (req, res) => {
+export const updateUserController = async (req, res) => {
+    try {
+        // Dados da URL
+        const { user_cpf } = req.params;
 
-    try{
-        
-        const {usu_cpf, end_id} = req.params;
+        // Dados do JSON (corpo da requisição)
+        const userParams = req.body;
 
-        const addresData = req.body;
+        // Valida se a rota não passar o CPF
+        if (!user_cpf) {
+            return res.status(400).json({ erro: "CPF não informado na URL." });
+        }
 
-        console.log("Body recebido:", req.body);
-
-        if (Object.keys(addresData).length === 0) {
-
+        // Valida se o corpo vier vazio
+        if (Object.keys(userParams).length === 0) {
             return res.status(400).json({ erro: "Nenhum dado fornecido para atualização." });
-
         }
 
-        const {
-            end_tipo,
-            end_cep,
-            end_cidade,
-            end_bairro,
-            end_logradouro,
-            end_numero
-        } = addresData;
+        const updatedUser = await updateUserService(user_cpf, userParams);
+        return res.status(200).json(updatedUser);
 
-        console.log("Variáveis:", { end_tipo, end_cep, end_logradouro });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+};
 
-        if(!end_tipo || !end_cep || !end_cidade || !end_bairro || !end_logradouro || !end_numero){
+export const createAddressController = async (req, res) => {
+    try {
+        // Dados da URL
+        const { user_cpf } = req.params;
 
-            return res.status(400).json({ erro: "Todos os campos obrigatórios precisam ser preenchidos." });
+        // Dados do JSON (corpo da requisição)
+        const addressData = req.body;
+        const { type, cep, location, complement } = addressData;
 
+        if (Object.keys(addressData).length === 0) {
+            return res.status(400).json({ error: "Nenhum dado fornecido para atualização." });
         }
 
-        const updatedAddres = await updateAddresService(usu_cpf, end_id, addresData);
-        return res.status(200).json(updatedAddres)
+        if (!type || !cep || !location || !complement) {
+            return res.status(400).json({ error: "Campos obrigatórios faltando. (type, cep, location, complement)" });
+        }
 
-    
-    }catch (erro){
+        const createdAddress = await createAddressService(user_cpf, addressData);
+        return res.status(200).json(createdAddress)
 
-        return res.status(400).json({ erro: erro.message})
-
+    } catch (error) {
+        return res.status(400).json({ error: error.message })
     }
 }
 
 export const deleteUserController = async (req, res) => {
-
     try {
+        const { user_cpf } = req.params;
 
-        const {usu_cpf} = req.params;
-
-
-        if(!usu_cpf){
-
-            return res.status(400).json({ erro: "Campo CPF do usuário faltando" });
-
+        if (!user_cpf) {
+            return res.status(400).json({ error: "Campo CPF do usuário faltando" });
         }
 
-        const delUser = await deleteUserService(usu_cpf);
-        return res.status(200).json(delUser)
+        await deleteUserService(user_cpf);
 
-    } catch (erro) {
-
-        return res.status(400).json({ erro: erro.message})
-
+        return res.status(200).json({ message: "Usuário excluído com sucesso" })
+    } catch (error) {
+        return res.status(400).json({ error: error.message })
     }
 }
 

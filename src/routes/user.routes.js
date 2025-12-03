@@ -1,32 +1,16 @@
 import { Router } from 'express';
-import { 
-    createUserController, 
-    listUsersController,
-    deleteUserController,
-    updatePersonalDataController,
-    updateAddresController
-
-} from '../controllers/user.controller.js';
+import { createUserController, listUsersController, deleteUserController, updateUserController, createAddressController } from '../controllers/user.controller.js';
 // import { ensureAuthenticated, ensureAdministrator, ensureAdministratorOrSelf } from '../middlewares/auth';
 
 const userRouter = Router();
-// const userController = new UserController();
 
-
-
-userRouter.post('/', createUserController);
 userRouter.get('/', listUsersController);
-userRouter.delete('/:usu_cpf', deleteUserController);
-userRouter.patch('/:usu_cpf', updatePersonalDataController);
-userRouter.put('/:usu_cpf/:end_id', updateAddresController);
+userRouter.post('/', createUserController);
+userRouter.patch('/:user_cpf', updateUserController);
+userRouter.delete('/:user_cpf', deleteUserController);
 
-
-// userRouter.use(ensureAuthenticated);
-
-// userRouter.get('/', ensureAdministrator, userController.findAll);                            // GET all users
-// userRouter.get('/:id', ensureAdministratorOrSelf, userController.findById);                  // GET single user
-// userRouter.post('/new', ensureAdministrator, userController.create);                         // CREATE user
-// userRouter.put('/edit/:id', ensureAdministratorOrSelf, userController.update);               // UPTADE user
-// userRouter.delete('/inactivate/:id', ensureAdministratorOrSelf, userController.softDelete);  // DELETE user
+// ADDRESS ROUTES
+userRouter.post('/:user_cpf', createAddressController);
+// userRouter.delete('/:user_cpf', removeAddressController);
 
 export default userRouter;
