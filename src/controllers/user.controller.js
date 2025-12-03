@@ -20,16 +20,7 @@ export const createUserController = async (req, res) => {
             return res.status(400).json({ error: "Campos obrigatórios faltando. (cpf, name, email e password)" });
         }
 
-        const saltRounds = 10; // Custo do processamento (10 é o padrão seguro)
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-        // Criamos um novo objeto com a senha já protegida
-        const userData = {
-            ...userParams,     // Copia cpf, email, name
-            password: hashedPassword // Sobrescreve a senha original pela hash
-        };
-
-        const newUser = await createUserService(userData);
+        const newUser = await createUserService(userParams);
 
         return res.status(201).json(newUser);
     } catch (error) {

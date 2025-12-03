@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { listUsers, findUserByCpf, findUserByEmail, createUser, updateUser, deleteUser } from '../repository/user.repository.js';
 
 export const listUsersService = async () => {
@@ -6,19 +7,28 @@ export const listUsersService = async () => {
 
 export const createUserService = async (userData) => {
     const allowedFields = ["cpf", "email", "name", "password", "type", "picture_url"];
-    const createData = sanitizeData(allowedFields, userData);
+    const userData = sanitizeData(allowedFields, userData);
 
-    if (!createData) {
+    if (!userData) {
         throw new Error("Nenhum campo válido enviado");
     }
 
-    const { cpf, email } = createData;
+    const { cpf, email, password } = userData;
 
     const cpfExist = await findUserByCpf(cpf);
     if (cpfExist) { throw new Error("CPF já cadastrado no sistema!"); }
 
     const emailExist = await findUserByEmail(email);
     if (emailExist) { throw new Error("Email já cadastrado no sistema!"); }
+
+    const saltRounds = 10; // Custo do processamento (10 é o padrão seguro)
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Criamos um novo objeto com a senha já protegida
+    const createData = {
+        ...userData,             // Copia cpf, email, name
+        password: hashedPassword // Sobrescreve a senha original pela hash
+    };
 
     return await createUser(createData);
 }
