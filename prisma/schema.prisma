@@ -55,7 +55,7 @@ model user {
   email       String    @unique(map: "usu_email") @db.VarChar(100)
   password    String    @db.VarChar(255)
   picture_url String?   @db.VarChar(255)
-  type        user_type
+  type        user_type? @default(Cliente)
   created_at  DateTime  @default(now()) @db.DateTime(0)
   excluded_at DateTime? @db.DateTime(0)
   contacts    contact[]
@@ -100,7 +100,7 @@ model contact {
 // }
 model address {
   id         Int     @id @default(autoincrement())
-  type       String  @db.VarChar(45)
+  type       String  @db.VarChar(45) @default("Principal")
   user_cpf   String  @db.Char(11)
   cep        String  @db.Char(8)
   location   String  @db.VarChar(150)
