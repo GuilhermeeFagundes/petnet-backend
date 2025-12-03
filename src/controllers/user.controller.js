@@ -13,20 +13,29 @@ export const listUsersController = async (req, res) => {
 export const createUserController = async (req, res) => {
     try {
         const userParams = req.body;
-        const { user_cpf, usu_email, usu_nome, usu_senha } = userParams;
+        const { cpf, email, name, password } = userParams;
 
         // validação da entrada dos campos obrigatórios
-        if (!user_cpf || !usu_email || !usu_nome || !usu_senha) {
+        if (!cpf || !email || !name || !password) {
             return res.status(400).json({ error: "Campos obrigatórios faltando. (cpf, name, email e password)" });
         }
 
-        const newUser = await createUserService(userParams);
+        const saltRounds = 10; // Custo do processamento (10 é o padrão seguro)
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Criamos um novo objeto com a senha já protegida
+        const userData = {
+            ...userParams,     // Copia cpf, email, name
+            password: hashedPassword // Sobrescreve a senha original pela hash
+        };
+
+        const newUser = await createUserService(userData);
 
         return res.status(201).json(newUser);
     } catch (error) {
         return res.status(400).json({ error: error.message });
     }
-};
+}
 
 export const updateUserController = async (req, res) => {
     try {
