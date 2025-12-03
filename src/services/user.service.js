@@ -7,13 +7,13 @@ export const listUsersService = async () => {
 
 export const createUserService = async (userData) => {
     const allowedFields = ["cpf", "email", "name", "password", "type", "picture_url"];
-    const userData = sanitizeData(allowedFields, userData);
+    const createData = sanitizeData(allowedFields, userData);
 
-    if (!userData) {
+    if (!createData) {
         throw new Error("Nenhum campo válido enviado");
     }
 
-    const { cpf, email, password } = userData;
+    const { cpf, email, password } = createData;
 
     const cpfExist = await findUserByCpf(cpf);
     if (cpfExist) { throw new Error("CPF já cadastrado no sistema!"); }
@@ -25,12 +25,12 @@ export const createUserService = async (userData) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Criamos um novo objeto com a senha já protegida
-    const createData = {
-        ...userData,             // Copia cpf, email, name
-        password: hashedPassword // Sobrescreve a senha original pela hash
+    const createDataWithHashedPassword = {
+        ...createData,             // Copia cpf, email, name
+        password: hashedPassword   // Sobrescreve a senha original pela hash
     };
 
-    return await createUser(createData);
+    return await createUser(createDataWithHashedPassword);
 }
 
 export const updateUserService = async (userCPF, userData) => {
