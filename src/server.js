@@ -22,6 +22,6 @@ app.listen(PORT, () => {
   console.log(`
     Servidor rodando na porta ${PORT} 🚀
 
-    http://localhos:${PORT}/healthcheck
+    http://localhost:${PORT}/healthcheck
   `);
 });

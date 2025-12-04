@@ -6,6 +6,7 @@ export const listPetsController = async (req, res) => {
         const pets = await listPetsService();
         return res.status(200).json(pets);
     } catch (error) {
+        console.error("listPetsController:", error);
         return res.status(500).json({ error: "Erro ao listar pets" });
     }
 }
@@ -28,6 +29,7 @@ export const findPetByIdController = async (req, res) => {
         */
         return res.status(200).json(pet);
     } catch (error) {
+        console.error("findPetByIdController:", error);
         return res.status(404).json({ error: error.message });
     }
 }
