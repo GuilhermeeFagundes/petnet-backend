@@ -37,6 +37,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env  # Carrega JWT_SECRET, JWT_EXPIRES_IN e demais variáveis locais
     environment:
       DATABASE_URL: "mysql://petnet:petnet@db:3306/petnet_development"
       PORT: 3000

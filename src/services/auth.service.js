@@ -6,9 +6,6 @@ import { sanitizeData } from '../middlewares/utils.middleware.js';
 import { validatePassword } from '../utils/validators.utils.js';
 import prisma from '../../prisma/prisma.js';
 
-// Duração do cookie em milissegundos (deve estar em sync com JWT_EXPIRES_IN = 1d)
-export const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000;
-
 /**
  * Registra um novo usuário e retorna o token JWT.
  * Realiza login automático após o cadastro.
