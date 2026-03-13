@@ -1,5 +1,6 @@
 import { verifyToken } from '../utils/jwt.utils.js';
 import { isAdmin, isSelf, isCollaboratorOrAdmin } from '../utils/auth.utils.js';
+import { findPetOwner } from '../repository/pet.repository.js';
 
 /**
  * Middleware base: verifica se o token JWT no cookie é válido.
@@ -57,6 +58,32 @@ export const ensureCollaborator = [
         if (!isCollaboratorOrAdmin(req.user)) {
             return res.status(403).json({ error: 'Acesso restrito a colaboradores.' });
         }
+        next();
+    },
+];
+
+/**
+ * Gerente acessa qualquer pet.
+ * Outros usuários só acessam pets que lhes pertencem.
+ * Faz uma query leve (select user_cpf) para verificar o dono sem expor dados extras.
+ * Requer que a rota tenha o parâmetro :id (id do pet).
+ */
+export const ensureAdminOrPetOwner = [
+    ensureAuthenticated,
+    async (req, res, next) => {
+        // Admin passa direto — sem custo de I/O
+        if (isAdmin(req.user)) return next();
+
+        const pet = await findPetOwner(req.params.id);
+
+        if (!pet) {
+            return res.status(404).json({ error: 'Pet não encontrado.' });
+        }
+
+        if (pet.user_cpf !== req.user.cpf) {
+            return res.status(403).json({ error: 'Sem permissão para acessar este pet.' });
+        }
+
         next();
     },
 ];

@@ -40,4 +40,12 @@ const deletePet = async (petId) => {
     });
 }
 
+// Retorna somente o CPF do dono — usado pelo middleware de autorização
+export const findPetOwner = async (petId) => {
+    return await prisma.pet.findFirst({
+        where: { id: Number(petId), excluded_at: null },
+        select: { user_cpf: true },
+    });
+};
+
 export default { listPets, findPetById, createPet, updatePet, deletePet };

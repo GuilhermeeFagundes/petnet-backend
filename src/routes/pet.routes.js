@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { listPetsController, findPetByIdController, createPetController, updatePetController, deletePetController } from '../controllers/pet.controller.js';
+import { ensureAuthenticated, ensureAdmin, ensureAdminOrPetOwner } from '../middlewares/auth.middleware.js';
 
 const petRouter = Router();
 
-petRouter.get("/", listPetsController);
-petRouter.get("/:id", findPetByIdController);
-petRouter.post("/", createPetController);
-petRouter.put("/:id", updatePetController);
-petRouter.delete("/:id", deletePetController);
+petRouter.get('/', ensureAdmin, listPetsController);                    // só admin lista todos os pets
+petRouter.get('/:id', ensureAdminOrPetOwner, findPetByIdController);   // dono ou admin
+petRouter.post('/', ensureAuthenticated, createPetController);         // qualquer usuário logado
+petRouter.put('/:id', ensureAdminOrPetOwner, updatePetController);     // dono ou admin
+petRouter.delete('/:id', ensureAdminOrPetOwner, deletePetController);  // dono ou admin
 
 export default petRouter;

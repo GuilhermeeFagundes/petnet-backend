@@ -1,16 +1,14 @@
 import { Router } from 'express';
 import { createUserController, showUserController, listUsersController, deleteUserController, reactivateUserController, updateUserController } from '../controllers/user.controller.js';
-// import { ensureAuthenticated, ensureAdministrator, ensureAdministratorOrSelf } from '../middlewares/auth';
+import { ensureAdmin, ensureAdminOrSelf } from '../middlewares/auth.middleware.js';
 
 const userRouter = Router();
 
-userRouter.get('/', listUsersController);
-userRouter.get('/:user_cpf', showUserController);
-userRouter.post('/', createUserController);
-userRouter.put('/:user_cpf', updateUserController);
-userRouter.delete('/:user_cpf', deleteUserController);
-userRouter.patch('/reactivate/:user_cpf', reactivateUserController);
-
-// TODO: MARIANA - Rotas de Endereço e Contato podem ser adicionadas aqui no futuro.
+userRouter.get('/', ensureAdmin, listUsersController);                             // só Gerente lista todos
+userRouter.get('/:user_cpf', ensureAdminOrSelf, showUserController);              // dono ou admin
+userRouter.post('/', ensureAdmin, createUserController);                                        // público — criação de conta
+userRouter.put('/:user_cpf', ensureAdminOrSelf, updateUserController);            // dono ou admin
+userRouter.delete('/:user_cpf', ensureAdminOrSelf, deleteUserController);               // só admin
+userRouter.patch('/reactivate/:user_cpf', ensureAdmin, reactivateUserController); // só admin
 
 export default userRouter;
