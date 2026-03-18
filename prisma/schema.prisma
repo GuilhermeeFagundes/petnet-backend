@@ -54,7 +54,7 @@ model user {
   name        String    @db.VarChar(100)
   email       String    @unique(map: "usu_email") @db.VarChar(100)
   password    String    @db.VarChar(255)
-  picture_url String?   @db.VarChar(255)
+  picture_blob Bytes?
   type        user_type? @default(Cliente)
   created_at  DateTime  @default(now()) @db.DateTime(0)
   excluded_at DateTime? @db.DateTime(0)
@@ -140,7 +140,7 @@ model pet {
   birth_date   DateTime?   @db.Date
   weight       Decimal?    @db.Decimal(5, 2)
   sex          pet_sex?
-  picture_url  String?     @db.VarChar(255)
+  picture_blob Bytes?
   observations String?     @db.Text
   created_at   DateTime    @default(now()) @db.DateTime(0)
   excluded_at  DateTime?   @db.DateTime(0)

@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import { base64ToBuffer, bufferToBase64 } from "../utils/image.utils.js";
 import { sanitizeData } from "../middlewares/utils.middleware.js";
 import {
     listUsers,
@@ -13,7 +14,14 @@ import {
 // --- USUÁRIOS ---
 
 export const listUsersService = async () => {
-    return await listUsers();
+    const users = await listUsers();
+    return users.map(user => {
+        if (user.picture_blob) {
+            user.userPicture = bufferToBase64(user.picture_blob);
+            delete user.picture_blob;
+        }
+        return user;
+    });
 }
 
 export const showUserService = async (userCPF) => {
@@ -22,15 +30,27 @@ export const showUserService = async (userCPF) => {
     if (cleanCpf.length !== 11) {
         throw new Error("CPF deve conter exatamente 11 dígitos");
     }
-    return await findUserByCpf(cleanCpf);
+    const user = await findUserByCpf(cleanCpf);
+
+    if (user && user.picture_blob) {
+        user.userPicture = bufferToBase64(user.picture_blob);
+        delete user.picture_blob;
+    }
+
+    return user;
 }
 
 export const createUserService = async (fullData) => {
 
-    const { contact, address, ...user } = fullData;
+    const { contact, address, userPicture, ...user } = fullData;
 
-    const allowedUserFields = ["cpf", "email", "name", "password", "type", "picture_url"];
-    const userData = sanitizeData(allowedUserFields, user);
+    const userWithPicture = {
+        ...user,
+        picture_blob: base64ToBuffer(userPicture)
+    };
+
+    const allowedUserFields = ["cpf", "email", "name", "password", "type", "picture_blob"];
+    const userData = sanitizeData(allowedUserFields, userWithPicture);
 
     const allowedAddressFields = ["cep", "complement", "location", "type"];
     const addressData = sanitizeData(allowedAddressFields, address);
@@ -62,10 +82,15 @@ export const createUserService = async (fullData) => {
 }
 
 export const updateUserService = async (userCPF, fullData) => {
-    const { contact, address, ...user } = fullData;
+    const { contact, address, userPicture, ...user } = fullData;
 
-    const allowedUserFields = ["email", "name", "password", "type", "picture_url"];
-    const userData = sanitizeData(allowedUserFields, user);
+    const userWithPicture = {
+        ...user,
+        picture_blob: userPicture ? base64ToBuffer(userPicture) : undefined
+    };
+
+    const allowedUserFields = ["email", "name", "password", "type", "picture_blob"];
+    const userData = sanitizeData(allowedUserFields, userWithPicture);
 
     const allowedAddressFields = ["cep", "complement", "location", "type"];
     const addressData = sanitizeData(allowedAddressFields, address);
