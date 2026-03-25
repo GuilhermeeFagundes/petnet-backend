@@ -13,6 +13,17 @@ export const listPetsService = async () => {
     });
 }
 
+export const findPetsByUserService = async (userCpf) => {
+    const pets = await petRepository.findPetsByUserCpf(userCpf);
+     return pets.map(pet => {
+        if (pet.picture_blob) {
+            pet.petPicture = bufferToBase64(pet.picture_blob);
+            delete pet.picture_blob;
+        }
+        return pet;
+     });
+}
+
 export const findPetByIdService = async (petId) => {
     const pet = await petRepository.findPetById(petId);
 

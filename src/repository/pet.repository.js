@@ -17,6 +17,16 @@ const findPetById = async (petId) => {
     });
 }
 
+// Listar pets do usuário logado
+const findPetsByUserCpf = async (userCpf) => {
+       return await prisma.pet.findMany({
+        where: {
+            user_cpf: userCpf,
+            excluded_at: null
+        }
+    });
+}
+
 // Criar Pet
 const createPet = async (petData) => {
     return await prisma.pet.create({
@@ -48,4 +58,4 @@ export const findPetOwner = async (petId) => {
     });
 };
 
-export default { listPets, findPetById, createPet, updatePet, deletePet };
+export default { listPets, findPetById, createPet, updatePet, deletePet, findPetsByUserCpf };

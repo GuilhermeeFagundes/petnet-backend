@@ -1,4 +1,16 @@
-import { listPetsService, findPetByIdService, createPetService, updatePetService, deletePetService } from "../services/pet.service.js";
+import { listPetsService, findPetByIdService, createPetService, updatePetService, deletePetService, findPetsByUserService } from "../services/pet.service.js";
+
+// puxa pets do usuário
+export const findPetsByUserController = async (req, res) => {
+    try {
+        const cpf = req.user.cpf; // vem do token JWT
+        const pets = await findPetsByUserService(cpf);
+        return res.status(200).json(pets);
+    } catch(error) {
+        console.error("findPetsByUserController:", error);
+        return res.status(500).json({ error: error.message });
+    }
+}
 
 //Listar todos
 export const listPetsController = async (req, res) => {
