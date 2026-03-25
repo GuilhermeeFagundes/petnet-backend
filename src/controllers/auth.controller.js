@@ -3,9 +3,9 @@ import { cookieOptions } from '../utils/cookie.utils.js';
 
 export const registerController = async (req, res) => {
     try {
-        const { token, user } = await registerService(req.body);
+        const { token, returnUser } = await registerService(req.body);
         res.cookie('token', token, cookieOptions);
-        return res.status(201).json({ message: 'Conta criada com sucesso.', user });
+        return res.status(201).json({ returnUser });
     } catch (error) {
         return res.status(400).json({ error: error.message });
     }

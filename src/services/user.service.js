@@ -42,7 +42,7 @@ export const showUserService = async (userCPF) => {
 
 export const createUserService = async (fullData) => {
 
-    const { contact, address, userPicture, ...user } = fullData;
+    const { contact, address, ...user } = fullData;
 
     const userWithPicture = {
         ...user,

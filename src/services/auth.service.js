@@ -1,10 +1,9 @@
 import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/jwt.utils.js';
 import { findUserByEmailForAuth } from '../repository/auth.repository.js';
-import { findUserByCpf, findUserByEmail } from '../repository/user.repository.js';
+import { findUserByCpf, findUserByEmail, createUser } from '../repository/user.repository.js';
 import { sanitizeData } from '../middlewares/utils.middleware.js';
 import { validatePassword } from '../utils/validators.utils.js';
-import prisma from '../../prisma/prisma.js';
 
 /**
  * Registra um novo usuário e retorna o token JWT.
@@ -13,33 +12,52 @@ import prisma from '../../prisma/prisma.js';
  * @param {object} userData - Dados crus vindos do req.body
  * @returns {{ token: string, user: object }}
  */
-export const registerService = async (userData) => {
-    const allowedFields = ['cpf', 'name', 'email', 'password'];
-    const data = sanitizeData(allowedFields, userData);
+export const registerService = async (fullData) => {
+    //TODO: Receber todo o body
+    const { contact, address, ...user } = fullData;
 
-    if (!data) throw new Error('Dados inválidos para cadastro.');
+    const allowedUserFields = ["cpf", "email", "name", "password", "type"];
+    const userData = sanitizeData(allowedUserFields, user);
+
+    const allowedAddressFields = ["cep", "complement", "location", "type"];
+    const addressData = sanitizeData(allowedAddressFields, address);
+
+    const allowedContactFields = ["number", "name"];
+    const contactData = sanitizeData(allowedContactFields, contact);
+
+
+    if (!user) throw new Error('Dados inválidos para cadastro.');
 
     // Sanitiza CPF (remove máscara)
-    data.cpf = data.cpf.replace(/\D/g, '');
-    if (data.cpf.length !== 11) throw new Error('CPF deve conter exatamente 11 dígitos.');
+    userData.cpf = userData.cpf.replace(/\D/g, '');
+    if (userData.cpf.length !== 11) throw new Error('CPF deve conter exatamente 11 dígitos.');
 
     // Valida requisitos mínimos de senha antes de qualquer consulta ao banco
-    validatePassword(data.password);
+    validatePassword(userData.password);
 
-    const cpfExists = await findUserByCpf(data.cpf);
+    const cpfExists = await findUserByCpf(userData.cpf);
     if (cpfExists) throw new Error('CPF já cadastrado no sistema.');
 
-    const emailExists = await findUserByEmail(data.email);
+    const emailExists = await findUserByEmail(userData.email);
     if (emailExists) throw new Error('E-mail já cadastrado no sistema.');
 
-    data.password = await bcrypt.hash(data.password, 10);
+    userData.password = await bcrypt.hash(userData.password, 10);
 
     // Cria o usuário sem endereço/contato — podem ser adicionados depois via /users
     // Nota: o tipo padrão é "Cliente" (definido no schema Prisma com @default(Cliente))
-    const newUser = await prisma.user.create({ data });
+    const newUser = await createUser(userData, addressData, contactData);
+
+    const returnUser = {
+        cpf: newUser.cpf,
+        name: newUser.name,
+        type: newUser.type,
+        email: newUser.email,
+        address: addressData,
+        contact: contactData
+    }
 
     const token = generateToken({ cpf: newUser.cpf, type: newUser.type });
-    return { token, user: { cpf: newUser.cpf, name: newUser.name, type: newUser.type } };
+    return { token, returnUser };
 };
 
 /**
