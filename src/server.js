@@ -7,7 +7,10 @@ import routes from './routes/index.js'; // Importa as rotas (e não o controller
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://petnet-pi.netlify.app'],
+  credentials: true
+}));
 app.use(cookieParser()); // Habilita leitura de cookies (req.cookies)
 
 // Rota de verificação (Health Check)
