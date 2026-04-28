@@ -1,102 +1,66 @@
 import { listPetsService, findPetByIdService, createPetService, updatePetService, deletePetService, findPetsByUserService } from "../services/pet.service.js";
+import { ResponseError } from "../errors/ResponseError.js";
 
 // puxa pets do usuário
 export const findPetsByUserController = async (req, res) => {
-    try {
-        const cpf = req.user.cpf; // vem do token JWT
-        const pets = await findPetsByUserService(cpf);
-        return res.status(200).json(pets);
-    } catch(error) {
-        console.error("findPetsByUserController:", error);
-        return res.status(500).json({ error: error.message });
-    }
+    const cpf = req.user.cpf; // vem do token JWT
+    const pets = await findPetsByUserService(cpf);
+    return res.status(200).json(pets);
 }
 
 //Listar todos
 export const listPetsController = async (req, res) => {
-    try {
-        const pets = await listPetsService();
-        return res.status(200).json(pets);
-    } catch (error) {
-        console.error("listPetsController:", error);
-        return res.status(500).json({ error: "Erro ao listar pets" });
-    }
+    const pets = await listPetsService();
+    return res.status(200).json(pets);
 }
 
 //Buscar por ID
 export const findPetByIdController = async (req, res) => {
-    try {
-        const { id } = req.params;
+    const { id } = req.params;
 
-        if (!id) {
-            return res.status(400).json({ error: "ID do pet não informado" });
-        }
-
-        const pet = await findPetByIdService(id);
-        /*
-        Somente com autenticação funcionando
-        if (pet.pet_usu_cpf !== req.user.usu_cpf) {
-            return res.status(403).json({ erro: "Acesso negado" });
-        }
-        */
-        return res.status(200).json(pet);
-    } catch (error) {
-        console.error("findPetByIdController:", error);
-        return res.status(404).json({ error: error.message });
+    if (!id) {
+        throw new ResponseError("ID do pet não informado", 400);
     }
+
+    const pet = await findPetByIdService(id);
+    return res.status(200).json(pet);
 }
 
 // Criar Pet
 export const createPetController = async (req, res) => {
-    try {
-        const petParams = req.body;
-        const { user_cpf, name, species, size } = petParams;
+    const petParams = req.body;
+    const { user_cpf, name, species, size } = petParams;
 
-        // validação da entrada dos campos obrigatórios
-        if (!user_cpf || !name || !species || !size) {
-            return res.status(400).json({ error: "Campos obrigatórios faltando. (cpf, name, species e size)" });
-        }
-
-        const newPet = await createPetService(petParams);
-
-        return res.status(201).json(newPet);
-
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
+    // validação da entrada dos campos obrigatórios
+    if (!user_cpf || !name || !species || !size) {
+        throw new ResponseError("Campos obrigatórios faltando. (cpf, name, species e size)", 400);
     }
+
+    const newPet = await createPetService(petParams);
+    return res.status(201).json(newPet);
 }
 
 // Atualizar Pet
 export const updatePetController = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const petParams = req.body;
+    const { id } = req.params;
+    const petParams = req.body;
 
-        if (!id) {
-            return res.status(400).json({ error: "ID não informado na URL." });
-        }
-
-        const updatedPet = await updatePetService(id, petParams);
-
-        return res.status(200).json(updatedPet);
-    } catch (err) {
-        return res.status(400).json({ erro: err.message });
+    if (!id) {
+        throw new ResponseError("ID não informado na URL.", 400);
     }
+
+    const updatedPet = await updatePetService(id, petParams);
+    return res.status(200).json(updatedPet);
 }
 
 // Deletar Pet
 export const deletePetController = async (req, res) => {
-    try {
-        const { id } = req.params;
+    const { id } = req.params;
 
-        if (!id) {
-            return res.status(400).json({ error: "ID não informado na URL." });
-        }
-
-        await deletePetService(id);
-
-        return res.status(200).json({ message: "Pet excluído com sucesso" });
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
+    if (!id) {
+        throw new ResponseError("ID não informado na URL.", 400);
     }
+
+    await deletePetService(id);
+    return res.status(200).json({ message: "Pet excluído com sucesso" });
 }

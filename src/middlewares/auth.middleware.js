@@ -1,6 +1,7 @@
 import { verifyToken } from '../utils/jwt.utils.js';
 import { isAdmin, isSelf, isCollaboratorOrAdmin } from '../utils/auth.utils.js';
 import { findPetOwner } from '../repository/pet.repository.js';
+import { ResponseError } from '../errors/ResponseError.js';
 
 /**
  * Middleware base: verifica se o token JWT no cookie é válido.
@@ -11,14 +12,14 @@ export const ensureAuthenticated = (req, res, next) => {
     const token = req.cookies?.token;
 
     if (!token) {
-        return res.status(401).json({ error: 'Acesso negado. Faça login.' });
+        throw new ResponseError('Acesso negado. Faça login.', 401);
     }
 
     try {
         req.user = verifyToken(token); // { cpf, type, iat, exp }
         next();
     } catch {
-        return res.status(401).json({ error: 'Token inválido ou expirado.' });
+        throw new ResponseError('Token inválido ou expirado.', 401);
     }
 };
 
@@ -29,7 +30,7 @@ export const ensureAdmin = [
     ensureAuthenticated,
     (req, res, next) => {
         if (!isAdmin(req.user)) {
-            return res.status(403).json({ error: 'Acesso restrito a administradores.' });
+            throw new ResponseError('Acesso restrito a administradores.', 403);
         }
         next();
     },
@@ -43,7 +44,7 @@ export const ensureAdminOrSelf = [
     ensureAuthenticated,
     (req, res, next) => {
         if (!isAdmin(req.user) && !isSelf(req.user, req.params.user_cpf)) {
-            return res.status(403).json({ error: 'Sem permissão para acessar este recurso.' });
+            throw new ResponseError('Sem permissão para acessar este recurso.', 403);
         }
         next();
     },
@@ -56,7 +57,7 @@ export const ensureCollaborator = [
     ensureAuthenticated,
     (req, res, next) => {
         if (!isCollaboratorOrAdmin(req.user)) {
-            return res.status(403).json({ error: 'Acesso restrito a colaboradores.' });
+            throw new ResponseError('Acesso restrito a colaboradores.', 403);
         }
         next();
     },
@@ -77,11 +78,11 @@ export const ensureAdminOrPetOwner = [
         const pet = await findPetOwner(req.params.id);
 
         if (!pet) {
-            return res.status(404).json({ error: 'Pet não encontrado.' });
+            throw new ResponseError('Pet não encontrado.', 404);
         }
 
         if (pet.user_cpf !== req.user.cpf) {
-            return res.status(403).json({ error: 'Sem permissão para acessar este pet.' });
+            throw new ResponseError('Sem permissão para acessar este pet.', 403);
         }
 
         next();
