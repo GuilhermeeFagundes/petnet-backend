@@ -1,0 +1,64 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: petnet-db-prod
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data_prod:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u$$MYSQL_USER",
+          "-p$$MYSQL_PASSWORD",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - internal
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: petnet-api-prod
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}"
+      PORT: 3000
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.petnet-api.rule=Host(`api.petnet.com.br`)"
+      - "traefik.http.routers.petnet-api.entrypoints=websecure"
+      - "traefik.http.routers.petnet-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.petnet-api.loadbalancer.server.port=3000"
+    networks:
+      - internal
+      - traefik-network
+
+volumes:
+  db_data_prod:
+
+networks:
+  internal:
+    driver: bridge
+  traefik-network:
+    external: true
