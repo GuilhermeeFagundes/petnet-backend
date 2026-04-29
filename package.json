@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start:prod": "npx prisma generate && npx prisma migrate deploy && node src/server.js",
+    "build:prod": "npx prisma generate",
+    "start:prod": "npx prisma migrate deploy && exec node src/server.js",
     "dev": "nodemon src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev"

@@ -5,107 +5,65 @@ import {
     updateUserService,
     deleteUserService,
     reactivateUserService,
-    // createAddressService,
-    // updateAddressService,
-    // removeAddressService,
-    // createContactService,
-    // updateContactService,
-    // removeContactService
 } from "../services/user.service.js";
+import { ResponseError } from "../errors/ResponseError.js";
 
 // --- USUÁRIOS ---
 
 export const listUsersController = async (req, res) => {
-    try {
-        const users = await listUsersService();
-        return res.status(200).json(users);
-    } catch (error) {
-        console.error("listUsersController:", error);
-        return res.status(400).json({ error: "Erro ao listar usuários" });
-    }
+    const users = await listUsersService();
+    return res.status(200).json(users);
 }
 
 export const showUserController = async (req, res) => {
-    try {
-        const { user_cpf } = req.params;
+    const { user_cpf } = req.params;
 
-        if (!user_cpf) {
-            return res.status(400).json({ error: "Campo CPF do usuário faltando" });
-        }
-
-        const user = await showUserService(user_cpf);
-        return res.status(200).json(user);
-    } catch (error) {
-        console.error("showUserController:", error);
-        return res.status(400).json({ error: "Erro ao buscar usuário" });
+    if (!user_cpf) {
+        throw new ResponseError("Campo CPF do usuário faltando", 400);
     }
+
+    const user = await showUserService(user_cpf);
+    return res.status(200).json(user);
 }
 
 export const createUserController = async (req, res) => {
-    try {
-        const fullData = req.body;
-
-        // Chama o serviço passando os dois objetos separados
-        const newUser = await createUserService(fullData);
-
-        return res.status(201).json(newUser);
-    } catch (error) {
-        console.error("createUserController:", error);
-        return res.status(400).json({ error: error.message });
-    }
+    const fullData = req.body;
+    const newUser = await createUserService(fullData);
+    return res.status(201).json(newUser);
 }
 
 export const updateUserController = async (req, res) => {
-    try {
-        const fullData = req.body;
+    const fullData = req.body;
+    const { user_cpf } = req.params;
 
-        const { user_cpf } = req.params;
-
-        if (!user_cpf) {
-            return res.status(400).json({ erro: "CPF não informado na URL." });
-        }
-
-        const updatedUser = await updateUserService(user_cpf, fullData);
-        return res.status(200).json(updatedUser);
-
-    } catch (error) {
-        console.error("updateUserController:", error);
-        return res.status(400).json({ error: error.message });
+    if (!user_cpf) {
+        throw new ResponseError("CPF não informado na URL.", 400);
     }
+
+    const updatedUser = await updateUserService(user_cpf, fullData);
+    return res.status(200).json(updatedUser);
 };
 
 export const deleteUserController = async (req, res) => {
-    try {
-        const { user_cpf } = req.params;
+    const { user_cpf } = req.params;
 
-        if (!user_cpf) {
-            return res.status(400).json({ error: "Campo CPF do usuário faltando" });
-        }
-
-        await deleteUserService(user_cpf);
-
-        return res.status(200).json({ message: "Usuário excluído com sucesso" })
-    } catch (error) {
-        console.error("deleteUserController:", error);
-        return res.status(400).json({ error: error.message })
+    if (!user_cpf) {
+        throw new ResponseError("Campo CPF do usuário faltando", 400);
     }
+
+    await deleteUserService(user_cpf);
+    return res.status(200).json({ message: "Usuário excluído com sucesso" })
 }
 
 export const reactivateUserController = async (req, res) => {
-    try {
-        const { user_cpf } = req.params;
+    const { user_cpf } = req.params;
 
-        if (!user_cpf) {
-            return res.status(400).json({ error: "Campo CPF do usuário faltando" });
-        }
-
-        await reactivateUserService(user_cpf);
-
-        return res.status(200).json({ message: "Usuário reativado com sucesso" })
-    } catch (error) {
-        console.error("reactivateUserController:", error);
-        return res.status(400).json({ error: error.message })
+    if (!user_cpf) {
+        throw new ResponseError("Campo CPF do usuário faltando", 400);
     }
+
+    await reactivateUserService(user_cpf);
+    return res.status(200).json({ message: "Usuário reativado com sucesso" })
 }
 
 // Esta comentado pois futuramente será implementado

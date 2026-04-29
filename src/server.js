@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import routes from './routes/index.js'; // Importa as rotas (e não o controller direto)
+import { errorMiddleware } from './middlewares/error.middleware.js';
 
 const app = express();
 
@@ -21,6 +22,9 @@ app.get('/healthcheck', (req, res) => {
 // Configura o uso das rotas de usuário
 // Tudo que chegar em /api vai para o arquivo index.routes.js
 app.use('/api', routes);
+
+// O middleware de erro deve vir DEPOIS das rotas
+app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 3000;
 
