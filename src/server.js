@@ -8,8 +8,18 @@ import { errorMiddleware } from './middlewares/error.middleware.js';
 const app = express();
 
 app.use(express.json());
+
+const allowedOrigins = {
+  development: ['http://localhost:5173'],
+  production: [
+    'https://petnet-pi.netlify.app',
+    'https://petnet.com.br',
+    'https://www.petnet.com.br',
+  ]
+}
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://petnet-pi.netlify.app'],
+  origin: allowedOrigins[process.env.NODE_ENV] || allowedOrigins.development,
   credentials: true
 }));
 app.use(cookieParser()); // Habilita leitura de cookies (req.cookies)
