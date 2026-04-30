@@ -2,6 +2,8 @@ services:
   db:
     image: mysql:8.4
     container_name: netcao-db-prod
+    env_file:
+      - .env.prod
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
@@ -37,6 +39,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"        # ← Traefik acessa via host network
+    env_file:
+      - .env.prod
     environment:
       DATABASE_URL: "mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}"
       PORT: 3000
