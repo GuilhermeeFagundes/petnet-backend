@@ -40,6 +40,6 @@ docker image prune -f
 
 # ---- 5. Show status ----
 echo -e "${YELLOW}📊 Container status:${NC}"
-docker compose -f $COMPOSE_FILE ps
+docker compose -f $COMPOSE_FILE --env-file $ENV_FILE ps
 
 echo -e "${GREEN}✅ Deploy done at $(date)${NC}"
