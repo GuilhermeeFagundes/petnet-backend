@@ -168,6 +168,15 @@ enum pet_sex {
   F
 }
 
+model service {
+  id           Int       @id @default(autoincrement())
+  name         String    @db.VarChar(100)
+  description  String    @db.VarChar(500)
+  picture_blob Bytes?
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  excluded_at  DateTime? @db.DateTime(0)
+}
+
 // model age_agendamento {
 //   age_id                                                 Int                           @id @default(autoincrement())
 //   age_cli_cpf                                            String                        @db.Char(11)
