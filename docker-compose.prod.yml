@@ -1,7 +1,9 @@
 services:
   db:
     image: mysql:8.4
-    container_name: petnet-db-prod
+    container_name: netcao-db-prod
+    env_file:
+      - .env.prod
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
@@ -13,13 +15,8 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-u$$MYSQL_USER",
-          "-p$$MYSQL_PASSWORD",
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"
         ]
       interval: 10s
       timeout: 5s
@@ -33,8 +30,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    container_name: petnet-api-prod
+    container_name: netcao-api-prod
     restart: unless-stopped
+    ports:
+      - "3000:3000"        # ← Traefik acessa via host network
+    env_file:
+      - .env.prod
     environment:
       DATABASE_URL: "mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}"
       PORT: 3000
@@ -46,13 +47,12 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.petnet-api.rule=Host(`api.petnet.com.br`)"
-      - "traefik.http.routers.petnet-api.entrypoints=websecure"
-      - "traefik.http.routers.petnet-api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.petnet-api.loadbalancer.server.port=3000"
+      - "traefik.http.routers.netcao-api.rule=Host(`api.netcao.com.br`)"
+      - "traefik.http.routers.netcao-api.entrypoints=websecure"
+      - "traefik.http.routers.netcao-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.netcao-api.loadbalancer.server.port=3000"
     networks:
       - internal
-      - traefik-network
 
 volumes:
   db_data_prod:
@@ -60,5 +60,3 @@ volumes:
 networks:
   internal:
     driver: bridge
-  traefik-network:
-    external: true

@@ -59,7 +59,7 @@ export const createUserService = async (fullData) => {
     const allowedUserFields = ["cpf", "email", "name", "password", "type", "picture_blob"];
     const userData = sanitizeData(allowedUserFields, userWithPicture);
 
-    const allowedAddressFields = ["cep", "complement", "location", "type"];
+    const allowedAddressFields = ["type", "cep", "locaticion", "neighborhood", "address", "number", "complement"];
     const addressData = sanitizeData(allowedAddressFields, address);
 
     const allowedContactFields = ["number", "name"];
@@ -103,7 +103,7 @@ export const updateUserService = async (userCPF, fullData) => {
     const allowedUserFields = ["email", "name", "password", "type", "picture_blob"];
     const userData = sanitizeData(allowedUserFields, userWithPicture);
 
-    const allowedAddressFields = ["cep", "complement", "location", "type"];
+    const allowedAddressFields = ["type", "cep", "locaticion", "neighborhood", "address", "number", "complement"];
     const addressData = sanitizeData(allowedAddressFields, address);
 
     const allowedContactFields = ["number", "name"];
@@ -167,120 +167,3 @@ export const reactivateUserService = async (userCPF) => {
 
     return await reactivateUser(cleanCpf);
 }
-
-// Esta comentado pois futuramente será implementado
-// --- ENDEREÇOS ---
-
-// export const createAddressService = async (userCPF, addressData) => {
-//     const cleanCpf = userCPF.replace(/\D/g, '');
-
-//     if (cleanCpf.length !== 11) {
-//         throw new Error("CPF deve conter exatamente 11 dígitos");
-//     }
-
-//     // Ajuste os campos conforme seu banco de dados (ex: logradouro, numero, etc)
-//     const allowedFields = ["type", "cep", "street", "number", "neighborhood", "city", "state", "complement"];
-//     const createData = sanitizeData(allowedFields, addressData);
-
-//     const findUser = await findUserByCpf(cleanCpf);
-//     if (!findUser) {
-//         throw new Error("CPF não existe!");
-//     }
-
-//     // Sanitização de CEP (Remove traço)
-//     if (createData.cep) {
-//         createData.cep = createData.cep.replace(/\D/g, '');
-//     }
-
-//     return await createAddress(cleanCpf, createData);
-// }
-
-// export const updateAddressService = async (userCPF, addressId, addressData) => {
-//     const cleanCpf = userCPF.replace(/\D/g, '');
-
-//     const findUser = await findUserByCpf(cleanCpf);
-//     if (!findUser) {
-//         throw new Error("CPF não existe!");
-//     }
-
-//     const allowedFields = ["type", "cep", "street", "number", "neighborhood", "city", "state", "complement"];
-//     const updateData = sanitizeData(allowedFields, addressData);
-
-//     if (!updateData) {
-//         throw new Error("Nenhum dado válido para atualização.");
-//     }
-
-//     // Sanitização de CEP
-//     if (updateData.cep) {
-//         updateData.cep = updateData.cep.replace(/\D/g, '');
-//     }
-
-//     const result = await updateAddress(cleanCpf, addressId, updateData);
-
-//     if (result.count === 0) {
-//         throw new Error("Endereço não encontrado ou não pertence a este usuário.");
-//     }
-
-//     return result;
-// }
-
-// export const removeAddressService = async (userCPF, addressId) => {
-//     // Verifica se o usuário existe (Opcional, mas boa prática)
-//     const cleanCpf = userCPF.replace(/\D/g, '');
-//     const user = await findUserByCpf(cleanCpf);
-//     if (!user) throw new Error("Usuário não encontrado.");
-
-//     // Nota: O ideal seria verificar se o endereço pertence ao usuário antes de deletar,
-//     // mas o removeAddress do repo atual deleta direto pelo ID.
-//     // Se quiser segurança total, teria que implementar deleteAddressMany ou verificar antes.
-//     return await removeAddress(addressId);
-// }
-
-// --- CONTATOS ---
-
-// export const createContactService = async (userCPF, contactData) => {
-//     const cleanCpf = userCPF.replace(/\D/g, '');
-
-//     const findUser = await findUserByCpf(cleanCpf);
-//     if (!findUser) throw new Error("CPF não existe!");
-
-//     const allowedFields = ["name", "phone_number", "type"];
-//     const createData = sanitizeData(allowedFields, contactData);
-
-//     // Limpa telefone
-//     if (createData.phone_number) {
-//         createData.phone_number = createData.phone_number.replace(/\D/g, '');
-//     }
-
-//     return await createContact(cleanCpf, createData);
-// }
-
-// export const updateContactService = async (userCPF, contactId, contactData) => {
-//     const cleanCpf = userCPF.replace(/\D/g, '');
-
-//     const findUser = await findUserByCpf(cleanCpf);
-//     if (!findUser) throw new Error("CPF não existe!");
-
-//     const allowedFields = ["name", "phone_number", "type"];
-//     const updateData = sanitizeData(allowedFields, contactData);
-
-//     if (updateData.phone_number) {
-//         updateData.phone_number = updateData.phone_number.replace(/\D/g, '');
-//     }
-
-//     const result = await updateContact(cleanCpf, contactId, updateData);
-
-//     if (result.count === 0) {
-//         throw new Error("Contato não encontrado ou não pertence a este usuário.");
-//     }
-
-//     return result;
-// }
-
-// export const removeContactService = async (userCPF, contactId) => {
-//     const cleanCpf = userCPF.replace(/\D/g, '');
-//     const user = await findUserByCpf(cleanCpf);
-//     if (!user) throw new Error("Usuário não encontrado.");
-
-//     return await removeContact(contactId);
-// }

@@ -1,5 +1,5 @@
 {
-  "name": "petnet-backend",
+  "name": "netcao-backend",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -12,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GuilhermeeFagundes/petnet-backend.git"
+    "url": "git+https://github.com/GuilhermeeFagundes/netcao-backend.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/GuilhermeeFagundes/petnet-backend/issues"
+    "url": "https://github.com/GuilhermeeFagundes/netcao-backend/issues"
   },
-  "homepage": "https://github.com/GuilhermeeFagundes/petnet-backend#readme",
+  "homepage": "https://github.com/GuilhermeeFagundes/netcao-backend#readme",
   "description": "",
   "dependencies": {
     "@prisma/client": "5.22.0",

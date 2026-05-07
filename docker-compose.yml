@@ -1,27 +1,22 @@
 services:
   db:
     image: mysql:8.4
-    container_name: petnet-db
+    container_name: netcao-db
     ports:
       - "5678:3306"
     environment:
       MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: petnet
-      MYSQL_DATABASE: petnet_development
-      MYSQL_USER: petnet
-      MYSQL_PASSWORD: petnet
+      MYSQL_ROOT_PASSWORD: netcao
+      MYSQL_DATABASE: netcao_development
+      MYSQL_USER: netcao
+      MYSQL_PASSWORD: netcao
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
       test:
         [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-u$$MYSQL_USER",
-          "-p$$MYSQL_PASSWORD",
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"
         ]
       interval: 10s
       timeout: 5s
@@ -33,14 +28,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: petnet-api
+    container_name: netcao-api
     restart: unless-stopped
     ports:
       - "3000:3000"
     env_file:
       - .env  # Carrega JWT_SECRET, JWT_EXPIRES_IN e demais variáveis locais
     environment:
-      DATABASE_URL: "mysql://petnet:petnet@db:3306/petnet_development"
+      DATABASE_URL: "mysql://root:netcao@db:3306/netcao_development"
       PORT: 3000
       NODE_ENV: development
     volumes:
