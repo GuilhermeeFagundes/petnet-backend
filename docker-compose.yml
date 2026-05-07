@@ -15,13 +15,8 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-u$$MYSQL_USER",
-          "-p$$MYSQL_PASSWORD",
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"
         ]
       interval: 10s
       timeout: 5s
@@ -40,7 +35,7 @@ services:
     env_file:
       - .env  # Carrega JWT_SECRET, JWT_EXPIRES_IN e demais variáveis locais
     environment:
-      DATABASE_URL: "mysql://netcao:netcao@db:3306/netcao_development"
+      DATABASE_URL: "mysql://root:netcao@db:3306/netcao_development"
       PORT: 3000
       NODE_ENV: development
     volumes:
