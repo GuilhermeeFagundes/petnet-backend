@@ -33,7 +33,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"João Silva\",\n    \"email\": \"joao@email.com\",\n    \"cpf\": \"12345678901\",\n    \"password\": \"Senha@123\",\n    \"type\": \"Cliente\",\n    \"contact\": {\n        \"number\": \"11999999999\",\n        \"name\": \"Celular\"\n    },\n    \"address\": {\n        \"cep\": \"01001000\",\n        \"location\": \"Rua Exemplo, 123\",\n        \"complement\": \"Apto 1\",\n        \"type\": \"Residencial\"\n    }\n}",
+							"raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"cpf\": \"12345678901\",\n    \"password\": \"Senha@123\",\n    \"type\": \"Cliente\",\n    \"contact\": {\n        \"number\": \"{{$randomPhoneNumber}}\",\n        \"name\": \"Celular\"\n    },\n    \"address\": {\n        \"type\": \"Residencial\",\n        \"cep\": \"01001000\",\n        \"locaticion\": \"{{$randomStreetAddress}}\",\n        \"neighborhood\": \"Centro\",\n        \"address\": \"Rua Nova\",\n        \"number\": \"123\",\n        \"complement\": \"Apto 1\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -150,7 +150,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"João Silva Atualizado\",\n    \"email\": \"joao_novo@email.com\"\n}",
+							"raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"password\": \"SenhaNova@123\",\n    \"address\": {\n        \"type\": \"Trabalho\",\n        \"cep\": \"12345678\",\n        \"locaticion\": \"{{$randomStreetAddress}}\",\n        \"neighborhood\": \"Bairro Comercial\",\n        \"address\": \"Avenida Central\",\n        \"number\": \"456\",\n        \"complement\": \"Sala 2\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"

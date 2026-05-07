@@ -16,13 +16,12 @@ import { UserEnums } from '../enums/user.enums.js';
  * @returns {{ token: string, user: object }}
  */
 export const registerService = async (fullData) => {
-    //TODO: Receber todo o body
     const { contact, address, ...user } = fullData;
 
     const allowedUserFields = ["cpf", "email", "name", "password", "type"];
     const userData = sanitizeData(allowedUserFields, user);
 
-    const allowedAddressFields = ["cep", "complement", "location", "type"];
+    const allowedAddressFields = ["type", "cep", "locaticion", "neighborhood", "address", "number", "complement"];
     const addressData = sanitizeData(allowedAddressFields, address);
 
     const allowedContactFields = ["number", "name"];
@@ -49,7 +48,6 @@ export const registerService = async (fullData) => {
 
     userData.password = await bcrypt.hash(userData.password, 10);
 
-    // Cria o usuário sem endereço/contato — podem ser adicionados depois via /users
     // Nota: o tipo padrão é "Cliente" (definido no schema Prisma com @default(Cliente))
     const newUser = await createUser(userData, addressData, contactData);
 

@@ -50,17 +50,17 @@ enum user_type {
 //   pet_pet                                                   pet_pet[]
 // }
 model user {
-  cpf         String    @id @db.Char(11)
-  name        String    @db.VarChar(100)
-  email       String    @unique(map: "usu_email") @db.VarChar(100)
-  password    String    @db.VarChar(255)
+  cpf          String     @id @db.Char(11)
+  name         String     @db.VarChar(100)
+  email        String     @unique(map: "usu_email") @db.VarChar(100)
+  password     String     @db.VarChar(255)
   picture_blob Bytes?
-  type        user_type? @default(Cliente)
-  created_at  DateTime  @default(now()) @db.DateTime(0)
-  excluded_at DateTime? @db.DateTime(0)
-  contacts    contact[]
-  addresses   address[]
-  pets        pet[]
+  type         user_type? @default(Cliente)
+  created_at   DateTime   @default(now()) @db.DateTime(0)
+  excluded_at  DateTime?  @db.DateTime(0)
+  contacts     contact[]
+  addresses    address[]
+  pets         pet[]
   // age_agendamento_age_agendamento_age_cli_cpfTousu_usuarios age_agendamento[]     @relation("age_agendamento_age_cli_cpfTousu_usuarios")
   // age_agendamento_age_agendamento_age_col_cpfTousu_usuarios age_agendamento[]     @relation("age_agendamento_age_col_cpfTousu_usuarios")
 }
@@ -99,13 +99,16 @@ model contact {
 //   @@index([end_usu_cpf], map: "fk_end_endereco_usu_usuarios_idx")
 // }
 model address {
-  id         Int     @id @default(autoincrement())
-  type       String  @db.VarChar(45) @default("Principal")
-  user_cpf   String  @db.Char(11)
-  cep        String  @db.Char(8)
-  location   String  @db.VarChar(150)
-  complement String? @db.VarChar(10)
-  user       user    @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_address_user_cpf")
+  id           Int     @id @default(autoincrement())
+  type         String  @default("Principal") @db.VarChar(45)
+  user_cpf     String  @db.Char(11)
+  cep          String  @db.Char(8)
+  locaticion   String  @db.VarChar(150)
+  neighborhood String  @db.VarChar(45)
+  address      String  @db.VarChar(45)
+  number       String  @db.VarChar(10)
+  complement   String? @db.VarChar(10)
+  user         user    @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_address_user_cpf")
 
   @@index([user_cpf], map: "address_user_cpf_idx")
 }
