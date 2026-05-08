@@ -2,9 +2,9 @@ import { registerService, loginService } from '../services/auth.service.js';
 import { cookieOptions } from '../utils/cookie.utils.js';
 
 export const registerController = async (req, res) => {
-    const { token, returnUser } = await registerService(req.body);
+    const { token, user } = await registerService(req.body);
     res.cookie('token', token, cookieOptions);
-    return res.status(201).json({ returnUser });
+    return res.status(201).json({ user });
 };
 
 export const loginController = async (req, res) => {
