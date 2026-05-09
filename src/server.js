@@ -4,10 +4,13 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import routes from './routes/index.js'; // Importa as rotas (e não o controller direto)
 import { errorMiddleware } from './middlewares/error.middleware.js';
+import { globalLimiter } from './middlewares/rate_limit.middleware.js';
 
 const app = express();
 
 app.use(express.json());
+
+app.use(globalLimiter);
 
 const allowedOrigins = {
   development: ['http://localhost:5173'],
