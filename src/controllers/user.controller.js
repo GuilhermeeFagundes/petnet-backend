@@ -6,62 +6,36 @@ import {
     deleteUserService,
     reactivateUserService,
 } from "../services/user.service.js";
-import { ResponseError } from "../errors/ResponseError.js";
-
-// --- USUÁRIOS ---
+import { requireFields } from "../utils/validators.utils.js";
 
 export const listUsersController = async (req, res) => {
     const users = await listUsersService();
     return res.status(200).json(users);
-}
+};
 
 export const showUserController = async (req, res) => {
-    const { user_cpf } = req.params;
-
-    if (!user_cpf) {
-        throw new ResponseError("Campo CPF do usuário faltando", 400);
-    }
-
-    const user = await showUserService(user_cpf);
+    const user = await showUserService(req.params.user_cpf);
     return res.status(200).json(user);
-}
+};
 
 export const createUserController = async (req, res) => {
-    const fullData = req.body;
-    const newUser = await createUserService(fullData);
+    requireFields(req.body, ['cpf', 'email', 'name', 'password']);
+
+    const newUser = await createUserService(req.body);
     return res.status(201).json(newUser);
-}
+};
 
 export const updateUserController = async (req, res) => {
-    const fullData = req.body;
-    const { user_cpf } = req.params;
-
-    if (!user_cpf) {
-        throw new ResponseError("CPF não informado na URL.", 400);
-    }
-
-    const updatedUser = await updateUserService(user_cpf, fullData);
+    const updatedUser = await updateUserService(req.params.user_cpf, req.body);
     return res.status(200).json(updatedUser);
 };
 
 export const deleteUserController = async (req, res) => {
-    const { user_cpf } = req.params;
-
-    if (!user_cpf) {
-        throw new ResponseError("Campo CPF do usuário faltando", 400);
-    }
-
-    await deleteUserService(user_cpf);
-    return res.status(200).json({ message: "Usuário excluído com sucesso" })
-}
+    await deleteUserService(req.params.user_cpf);
+    return res.status(200).json({ message: "Usuário excluído com sucesso" });
+};
 
 export const reactivateUserController = async (req, res) => {
-    const { user_cpf } = req.params;
-
-    if (!user_cpf) {
-        throw new ResponseError("Campo CPF do usuário faltando", 400);
-    }
-
-    await reactivateUserService(user_cpf);
-    return res.status(200).json({ message: "Usuário reativado com sucesso" })
-}
+    await reactivateUserService(req.params.user_cpf);
+    return res.status(200).json({ message: "Usuário reativado com sucesso" });
+};

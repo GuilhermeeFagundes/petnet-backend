@@ -1,9 +1,13 @@
 import prisma from '../../prisma/prisma.js';
 
-//OLHAR TELAS RAPHA
+const SCHEDULE_INCLUDES = {
+  client: { select: { name: true, cpf: true } },
+  pet: true,
+  collaborator: { select: { name: true, cpf: true } },
+  services: true,
+};
 
-// Listar todos os agendamentos (incluindo Cliente, Pet e Colaborador) com filtro de data
-const listSchedules = async (initialDate, finalDate, filters = {}) => {
+export const listSchedules = async (initialDate, finalDate, filters = {}) => {
   return await prisma.schedule.findMany({
     where: {
       date_time: {
@@ -13,41 +17,27 @@ const listSchedules = async (initialDate, finalDate, filters = {}) => {
       ...filters
     },
     include: {
-      client: {
-        select: { name: true }
-      },
+      client: { select: { name: true } },
       pet: {
         include: {
-          user: {
-            select: { name: true }
-          }
+          user: { select: { name: true } }
         }
       },
-      collaborator: {
-        select: { name: true }
-      },
+      collaborator: { select: { name: true } },
       services: true
     },
     orderBy: { date_time: 'asc' }
   });
-}
+};
 
-
-// Encontrar agendamento por ID
-const findScheduleById = async (id) => {
+export const findScheduleById = async (id) => {
   return await prisma.schedule.findUnique({
     where: { id: Number(id) },
-    include: {
-      client: { select: { name: true, cpf: true } },
-      pet: true,
-      collaborator: { select: { name: true, cpf: true } },
-      services: true
-    }
+    include: SCHEDULE_INCLUDES
   });
-}
+};
 
-// Criar Agendamento
-const createSchedule = async (scheduleData) => {
+export const createSchedule = async (scheduleData) => {
   const { services, ...data } = scheduleData;
   return await prisma.schedule.create({
     data: {
@@ -56,10 +46,9 @@ const createSchedule = async (scheduleData) => {
     },
     include: { services: true }
   });
-}
+};
 
-// Atualizar Agendamento
-const updateSchedule = async (id, scheduleData) => {
+export const updateSchedule = async (id, scheduleData) => {
   const { services, ...data } = scheduleData;
   return await prisma.schedule.update({
     where: { id: Number(id) },
@@ -71,18 +60,8 @@ const updateSchedule = async (id, scheduleData) => {
   });
 };
 
-// Deletar Agendamento
-const deleteSchedule = async (id) => {
+export const deleteSchedule = async (id) => {
   return await prisma.schedule.delete({
     where: { id: Number(id) }
   });
-}
-
-export default {
-  listSchedules,
-
-  findScheduleById,
-  createSchedule,
-  updateSchedule,
-  deleteSchedule
 };

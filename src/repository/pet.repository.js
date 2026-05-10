@@ -1,61 +1,55 @@
 import prisma from '../../prisma/prisma.js';
 
-// listar Pets
-const listPets = async () => {
+export const listPets = async () => {
     return await prisma.pet.findMany({
         where: { excluded_at: null }
-    })
-}
+    });
+};
 
-// Encontrar Pet por id
-const findPetById = async (petId) => {
+export const findPetById = async (petId) => {
     return await prisma.pet.findFirst({
         where: {
             id: Number(petId),
             excluded_at: null
         }
     });
-}
+};
 
-// Listar pets do usuário logado
-const findPetsByUserCpf = async (userCpf) => {
-       return await prisma.pet.findMany({
+export const findPetsByUserCpf = async (userCpf) => {
+    return await prisma.pet.findMany({
         where: {
             user_cpf: userCpf,
             excluded_at: null
         }
     });
-}
+};
 
-// Criar Pet
-const createPet = async (petData) => {
+export const createPet = async (petData) => {
     return await prisma.pet.create({
         data: petData
     });
-}
+};
 
-// Atualizar Pet
-const updatePet = async (petId, petData) => {
+export const updatePet = async (petId, petData) => {
     return await prisma.pet.update({
         where: { id: Number(petId) },
         data: petData
     });
 };
 
-// Deletar Pet(gera a data de exclusão)
-const deletePet = async (petId) => {
+export const deletePet = async (petId) => {
     return await prisma.pet.update({
         where: { id: Number(petId) },
         data: { excluded_at: new Date() }
     });
-}
+};
 
-// Retorna somente o CPF do dono — usado pelo middleware de autorização
+/**
+ * Retorna somente o CPF do dono — usado pelo middleware de autorização.
+ */
 export const findPetOwner = async (petId) => {
     return await prisma.pet.findFirst({
         where: { id: Number(petId), excluded_at: null },
         select: { user_cpf: true },
     });
 };
-
-export default { listPets, findPetById, createPet, updatePet, deletePet, findPetsByUserCpf };

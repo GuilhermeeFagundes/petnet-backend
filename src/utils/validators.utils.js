@@ -20,6 +20,43 @@ export const requireFields = (data, fields) => {
 };
 
 /**
+ * Converte e valida um ID de rota (req.params) para número inteiro.
+ * Lança ResponseError 400 se o valor não for um número válido.
+ *
+ * @param {string} value - Valor do parâmetro de rota
+ * @param {string} [label='ID'] - Nome do campo para a mensagem de erro
+ * @returns {number} Valor convertido para inteiro
+ * @throws {ResponseError} Se o valor não for numérico
+ */
+export const parseId = (value, label = 'ID') => {
+    const id = Number(value);
+
+    if (isNaN(id) || !Number.isInteger(id) || id <= 0) {
+        throw new ResponseError(`${label} inválido: '${value}'`, 400);
+    }
+
+    return id;
+};
+
+/**
+ * Limpa um CPF removendo caracteres não numéricos e valida o comprimento.
+ * Lança ResponseError 400 se não tiver 11 dígitos.
+ *
+ * @param {string} cpf - CPF com ou sem máscara
+ * @returns {string} CPF limpo (apenas dígitos)
+ * @throws {ResponseError} Se o CPF não tiver 11 dígitos
+ */
+export const cleanCpf = (cpf) => {
+    const digits = cpf.replace(/\D/g, '');
+
+    if (digits.length !== 11) {
+        throw new ResponseError("CPF deve conter exatamente 11 dígitos", 400);
+    }
+
+    return digits;
+};
+
+/**
  * Valida se a senha atende aos requisitos mínimos de segurança:
  * - Mínimo de 8 caracteres
  * - Pelo menos 1 letra maiúscula
