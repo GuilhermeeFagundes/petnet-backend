@@ -24,9 +24,9 @@ datasource db {
 // ------------------ USERS ------------------
 
 enum user_type {
-  Cliente
-  Gerente
-  Colaborador
+  CUSTOMER
+  MANAGER
+  COLLABORATOR
 }
 
 model user {
@@ -35,7 +35,7 @@ model user {
   email        String     @unique(map: "usu_email") @db.VarChar(100)
   password     String     @db.VarChar(255)
   picture_blob Bytes?
-  type         user_type? @default(Cliente)
+  type         user_type? @default(CUSTOMER)
   created_at   DateTime   @default(now()) @db.DateTime(0)
   excluded_at  DateTime?  @db.DateTime(0)
   contacts     contact[]
@@ -114,10 +114,10 @@ enum pet_species {
 }
 
 enum pet_size {
-  S // Pequeno
-  M // Médio
-  L // Grande
-  G // Gigante
+  S
+  M
+  L
+  XL
 }
 
 enum pet_sex {
@@ -208,6 +208,8 @@ enum schedule_duration {
   ONE_HOUR // 1h
   ONE_HALF_HOUR // 1.5h
   TWO_HOURS // 2h
+  TWO_HALF_HOURS // 2.5h
+  THREE_HOURS // 3h
 }
 
 enum schedule_status {

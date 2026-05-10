@@ -19,14 +19,14 @@ export async function seedAdmin(prisma) {
       name: adminName,
       email: adminEmail,
       password: hashedPassword,
-      type: 'Gerente',
+      type: 'MANAGER',
     },
     create: {
       cpf: adminCpf,
       name: adminName,
       email: adminEmail,
       password: hashedPassword,
-      type: 'Gerente',
+      type: 'MANAGER',
     },
   });
 

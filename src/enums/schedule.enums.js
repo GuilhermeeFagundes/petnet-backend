@@ -4,6 +4,8 @@ export const ScheduleDuration = {
   ONE_HOUR: "ONE_HOUR",
   ONE_HALF_HOUR: "ONE_HALF_HOUR",
   TWO_HOURS: "TWO_HOURS",
+  TWO_HALF_HOURS: "TWO_HALF_HOURS",
+  THREE_HOURS: "THREE_HOURS",
 };
 
 export const ScheduleStatus = {
@@ -23,6 +25,8 @@ export const ScheduleDurationMetadata = {
     [ScheduleDuration.ONE_HOUR]: "1 Hora",
     [ScheduleDuration.ONE_HALF_HOUR]: "1 Hora e 30 Minutos",
     [ScheduleDuration.TWO_HOURS]: "2 Horas",
+    [ScheduleDuration.TWO_HALF_HOURS]: "2 Horas e 30 Minutos",
+    [ScheduleDuration.THREE_HOURS]: "3 Horas",
   }
 };
 

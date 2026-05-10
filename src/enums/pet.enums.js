@@ -7,7 +7,7 @@ export const PetSize = {
   S: 'S',
   M: 'M',
   L: 'L',
-  G: 'G'
+  XL: 'XL'
 };
 
 export const PetSex = {
@@ -33,7 +33,7 @@ export const PetSizeMetadata = {
     [PetSize.S]: 'Pequeno',
     [PetSize.M]: 'Médio',
     [PetSize.L]: 'Grande',
-    [PetSize.G]: 'Gigante'
+    [PetSize.XL]: 'Gigante'
   }
 };
 

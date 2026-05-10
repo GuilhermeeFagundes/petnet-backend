@@ -18,7 +18,7 @@ describe('JWT Utils (jwt.utils.js)', () => {
 
   describe('generateToken', () => {
     it('deve chamar jwt.sign com o payload e configurações corretas', () => {
-      const payload = { cpf: '12345678900', type: 'Cliente' };
+      const payload = { cpf: '12345678900', type: 'CUSTOMER' };
       jwt.sign.mockReturnValue('token_mockado');
 
       const result = generateToken(payload);

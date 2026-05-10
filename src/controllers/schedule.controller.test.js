@@ -15,7 +15,7 @@ describe('Schedule Controller (schedule.controller.js)', () => {
   let req, res;
 
   beforeEach(() => {
-    req = { params: {}, body: {}, query: {}, user: { cpf: '12345678900', type: 'Cliente' } };
+    req = { params: {}, body: {}, query: {}, user: { cpf: '12345678900', type: 'CUSTOMER' } };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()

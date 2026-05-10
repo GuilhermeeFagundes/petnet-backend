@@ -20,9 +20,9 @@ export const listSchedulesService = async (queryData, user) => {
 
   const filters = {};
 
-  if (user.type === 'Colaborador') {
+  if (user.type === 'COLLABORATOR') {
     filters.collaborator_cpf = user.cpf;
-  } else if (user.type === 'Cliente') {
+  } else if (user.type === 'CUSTOMER') {
     filters.client_cpf = user.cpf;
   }
 
@@ -33,11 +33,11 @@ export const findScheduleByIdService = async (id, user) => {
   const schedule = await findScheduleById(id);
   if (!schedule) throw new ResponseError("Agendamento não encontrado", 404);
 
-  if (user.type === 'Cliente' && schedule.client_cpf !== user.cpf) {
+  if (user.type === 'CUSTOMER' && schedule.client_cpf !== user.cpf) {
     throw new ResponseError("Acesso negado a este agendamento", 403);
   }
 
-  if (user.type === 'Colaborador' && schedule.collaborator_cpf !== user.cpf) {
+  if (user.type === 'COLLABORATOR' && schedule.collaborator_cpf !== user.cpf) {
     throw new ResponseError("Acesso negado a este agendamento", 403);
   }
 

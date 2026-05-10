@@ -21,7 +21,7 @@ describe('User Service (user.service.js)', () => {
 
   describe('listUsersService', () => {
     it('deve listar usuários e mapear campos de imagem e enums', async () => {
-      const mockUsers = [{ cpf: '12345678901', picture_blob: null, type: 'Cliente' }];
+      const mockUsers = [{ cpf: '12345678901', picture_blob: null, type: 'CUSTOMER' }];
       userRepository.listUsers.mockResolvedValue(mockUsers);
 
       const result = await listUsersService();
@@ -33,7 +33,7 @@ describe('User Service (user.service.js)', () => {
 
   describe('showUserService', () => {
     it('deve retornar o usuário se o CPF for válido e o usuário existir', async () => {
-      const mockUser = { cpf: '12345678900', name: 'João', type: 'Cliente' };
+      const mockUser = { cpf: '12345678900', name: 'João', type: 'CUSTOMER' };
       userRepository.findUserByCpf.mockResolvedValue(mockUser);
 
       const result = await showUserService('123.456.789-00');
@@ -50,7 +50,7 @@ describe('User Service (user.service.js)', () => {
 
   describe('createUserService', () => {
     it('deve criar um novo usuário com sucesso', async () => {
-      const userData = { cpf: '12345678901', email: 't@t.com', name: 'J', password: 'password', type: 'Cliente' };
+      const userData = { cpf: '12345678901', email: 't@t.com', name: 'J', password: 'password', type: 'CUSTOMER' };
       userRepository.findUserByCpf.mockResolvedValue(null);
       userRepository.findUserByEmail.mockResolvedValue(null);
       bcrypt.hash.mockResolvedValue('hashed_password');
