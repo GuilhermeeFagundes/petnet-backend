@@ -37,13 +37,13 @@ export const createUser = async (userData, addressData, contactData) => {
         data: {
             ...userData,
 
-            addresses: {
+            addresses: addressData ? {
                 create: addressData
-            },
+            } : undefined,
 
-            contacts: {
+            contacts: contactData ? {
                 create: contactData
-            }
+            } : undefined,
         },
         include: {
             addresses: true,
