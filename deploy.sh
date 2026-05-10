@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e
 
-# ---- Colors ----
+# ---- Cores ----
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# ---- Config ----
+# ---- Configurações ----
 COMPOSE_FILE="docker-compose.prod.yml"
 ENV_FILE=".env.prod"
 APP_DIR="$(dirname "$0")"
@@ -16,39 +16,55 @@ APP_DIR="$(dirname "$0")"
 cd "$APP_DIR"
 
 if [ ! -f "$ENV_FILE" ]; then
-  echo -e "${RED}❌ $ENV_FILE not found! Aborting deploy.${NC}"
+  echo -e "${RED}❌ Arquivo $ENV_FILE não encontrado! Abortando deploy.${NC}"
   exit 1
 fi
 
-echo -e "${YELLOW}🚀 Starting deploy at $(date)${NC}"
+echo -e "${YELLOW}🚀 Iniciando deploy em $(date)${NC}"
 
-# ---- 1. Pull latest code ----
-echo -e "${YELLOW}📦 Pulling latest code from GitHub...${NC}"
+# ---- 1. Atualizar código ----
+echo -e "${YELLOW}📦 Puxando código mais recente do GitHub...${NC}"
 git pull origin main
 
-# ---- 2. Run Tests ----
-echo -e "${YELLOW}🧪 Running safety tests...${NC}"
-if ! npm test -- --watchAll=false; then
-  echo -e "${RED}❌ TESTS FAILED!${NC}"
-  echo -e "${RED}Aborting deploy to keep the current version running.${NC}"
+# ---- 2. Build dos containers ----
+echo -e "${YELLOW}🔨 Construindo containers...${NC}"
+docker compose -f $COMPOSE_FILE --env-file $ENV_FILE build --no-cache
+
+# ---- 3. Rodar Testes (Dentro do Docker) ----
+echo -e "${YELLOW}🧪 Rodando testes de segurança dentro do container...${NC}"
+if ! docker compose -f $COMPOSE_FILE --env-file $ENV_FILE run --rm api npm test -- --watchAll=false; then
+  echo -e "${RED}❌ OS TESTES FALHARAM!${NC}"
+  echo -e "${RED}Abortando deploy para manter a versão atual estável no ar.${NC}"
   exit 1
 fi
-echo -e "${GREEN}✅ Tests passed! Starting build process...${NC}"
+echo -e "${GREEN}✅ Testes aprovados! Prosseguindo com o deploy...${NC}"
 
-# ---- 3. Build containers ----
-echo -e "${YELLOW}🔨 Building containers...${NC}"
-docker compose -f $COMPOSE_FILE --env-file $ENV_FILE build
-
-# ---- 3. Restart containers ----
-echo -e "${YELLOW}♻️  Restarting containers...${NC}"
+# ---- 4. Reiniciar containers ----
+echo -e "${YELLOW}♻️  Reiniciando containers com a nova versão...${NC}"
 docker compose -f $COMPOSE_FILE --env-file $ENV_FILE up -d
 
-# ---- 4. Clean up old images ----
-echo -e "${YELLOW}🧹 Cleaning up old images...${NC}"
+# ---- 5. Migrações do Banco ----
+echo -e "${YELLOW}🗄️  Rodando migrações do banco de dados...${NC}"
+# 'migrate deploy' é seguro para produção (não apaga dados)
+docker compose -f $COMPOSE_FILE --env-file $ENV_FILE exec -T api npx prisma migrate deploy
+
+# ---- 6. Seed Opcional ----
+echo -e "${YELLOW}❓ Pergunta:${NC}"
+read -p "Deseja rodar o seed para atualizar Admin e Serviços? (s/n): " confirm
+if [[ $confirm =~ ^[sSyY]$ ]]; then
+  echo -e "${YELLOW}🌱 Semeando banco de dados (Seed)...${NC}"
+  docker compose -f $COMPOSE_FILE --env-file $ENV_FILE exec -T api npx prisma db seed
+  echo -e "${GREEN}✅ Seed finalizado com sucesso!${NC}"
+else
+  echo -e "${YELLOW}⏭️  Pulando execução de seed.${NC}"
+fi
+
+# ---- 7. Limpeza de imagens antigas ----
+echo -e "${YELLOW}🧹 Limpando imagens antigas não utilizadas...${NC}"
 docker image prune -f
 
-# ---- 5. Show status ----
-echo -e "${YELLOW}📊 Container status:${NC}"
+# ---- 8. Status final ----
+echo -e "${YELLOW}📊 Status dos containers:${NC}"
 docker compose -f $COMPOSE_FILE --env-file $ENV_FILE ps
 
-echo -e "${GREEN}✅ Deploy done at $(date)${NC}"
+echo -e "${GREEN}✅ Deploy finalizado com sucesso em $(date)${NC}"
