@@ -18,7 +18,7 @@ describe('Auth Service (auth.service.js)', () => {
 
   describe('registerService', () => {
     it('deve registrar um novo usuário e retornar token', async () => {
-      const userData = { cpf: '12345678901', email: 't@t.com', name: 'J', password: 'Password1', type: 'Cliente' };
+      const userData = { cpf: '12345678901', email: 't@t.com', name: 'J', password: 'Password1', type: 'CUSTOMER' };
       userRepository.findUserByCpf.mockResolvedValue(null);
       userRepository.findUserByEmail.mockResolvedValue(null);
       bcrypt.hash.mockResolvedValue('hashed');
@@ -52,7 +52,7 @@ describe('Auth Service (auth.service.js)', () => {
 
   describe('loginService', () => {
     it('deve autenticar o usuário e retornar o token se as credenciais forem válidas', async () => {
-      const mockUser = { cpf: '12345678901', email: 't@t.com', password: 'hashed_password', name: 'J', type: 'Cliente' };
+      const mockUser = { cpf: '12345678901', email: 't@t.com', password: 'hashed_password', name: 'J', type: 'CUSTOMER' };
       authRepository.findUserByEmailForAuth.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(true);
       jwtUtils.generateToken.mockReturnValue('token_login');

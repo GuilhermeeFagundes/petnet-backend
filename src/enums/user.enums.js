@@ -1,7 +1,7 @@
 export const UserType = {
-  CLIENTE: 'Cliente',
-  GERENTE: 'Gerente',
-  COLABORADOR: 'Colaborador'
+  CUSTOMER: 'CUSTOMER',
+  MANAGER: 'MANAGER',
+  COLLABORATOR: 'COLLABORATOR'
 };
 
 export const UserTypeMetadata = {
@@ -9,9 +9,9 @@ export const UserTypeMetadata = {
   label: 'Tipo de Usuário',
   values: UserType,
   translations: {
-    [UserType.CLIENTE]: 'Cliente',
-    [UserType.GERENTE]: 'Gerente',
-    [UserType.COLABORADOR]: 'Colaborador'
+    [UserType.CUSTOMER]: 'Cliente',
+    [UserType.MANAGER]: 'Gerente',
+    [UserType.COLLABORATOR]: 'Colaborador'
   }
 };
 

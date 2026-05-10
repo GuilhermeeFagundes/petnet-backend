@@ -26,7 +26,16 @@ echo -e "${YELLOW}🚀 Starting deploy at $(date)${NC}"
 echo -e "${YELLOW}📦 Pulling latest code from GitHub...${NC}"
 git pull origin main
 
-# ---- 2. Build containers ----
+# ---- 2. Run Tests ----
+echo -e "${YELLOW}🧪 Running safety tests...${NC}"
+if ! npm test -- --watchAll=false; then
+  echo -e "${RED}❌ TESTS FAILED!${NC}"
+  echo -e "${RED}Aborting deploy to keep the current version running.${NC}"
+  exit 1
+fi
+echo -e "${GREEN}✅ Tests passed! Starting build process...${NC}"
+
+# ---- 3. Build containers ----
 echo -e "${YELLOW}🔨 Building containers...${NC}"
 docker compose -f $COMPOSE_FILE --env-file $ENV_FILE build
 

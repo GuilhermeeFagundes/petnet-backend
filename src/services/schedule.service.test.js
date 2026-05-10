@@ -22,7 +22,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       scheduleRepository.listSchedules.mockResolvedValue(mockSchedules);
 
       const query = { initial_date: '2023-01-01', final_date: '2023-01-31' };
-      const user = { type: 'Cliente', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: '12345678901' };
 
       const result = await listSchedulesService(query, user);
 
@@ -31,7 +31,7 @@ describe('Schedule Service (schedule.service.js)', () => {
     });
 
     it('deve listar agendamentos filtrando pelo CPF do colaborador', async () => {
-      const user = { type: 'Colaborador', cpf: '45678901234' };
+      const user = { type: 'COLLABORATOR', cpf: '45678901234' };
       await listSchedulesService({}, user);
       expect(scheduleRepository.listSchedules).toHaveBeenCalledWith(
         expect.any(Date),
@@ -41,7 +41,7 @@ describe('Schedule Service (schedule.service.js)', () => {
     });
 
     it('deve listar agendamentos filtrando pelo CPF do cliente', async () => {
-      const user = { type: 'Cliente', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: '12345678901' };
       await listSchedulesService({}, user);
       expect(scheduleRepository.listSchedules).toHaveBeenCalledWith(
         expect.any(Date),
@@ -51,17 +51,17 @@ describe('Schedule Service (schedule.service.js)', () => {
     });
 
     it('deve usar datas padrão se nenhuma for fornecida', async () => {
-      const user = { type: 'Admin', cpf: '000' };
+      const user = { type: 'MANAGER', cpf: '000' };
       await listSchedulesService({}, user);
       expect(scheduleRepository.listSchedules).toHaveBeenCalledWith(
         expect.any(Date), // start of month
         expect.any(Date), // end of month
-        {} // no filters for Admin
+        {} // no filters for MANAGER
       );
     });
 
     it('deve lidar com dados de query inválidos retornando objeto vazio', async () => {
-      const user = { type: 'Admin', cpf: '000' };
+      const user = { type: 'MANAGER', cpf: '000' };
       await listSchedulesService({ invalid: 'field' }, user);
       expect(scheduleRepository.listSchedules).toHaveBeenCalled();
     });
@@ -72,7 +72,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       const mockSchedule = { id: 1, client_cpf: '12345678901' };
       scheduleRepository.findScheduleById.mockResolvedValue(mockSchedule);
 
-      const user = { type: 'Cliente', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: '12345678901' };
       const result = await findScheduleByIdService(1, user);
 
       expect(result.id).toBe(1);
@@ -82,7 +82,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       const mockSchedule = { id: 1, client_cpf: '45678901234' };
       scheduleRepository.findScheduleById.mockResolvedValue(mockSchedule);
 
-      const user = { type: 'Cliente', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: '12345678901' };
       await expect(findScheduleByIdService(1, user)).rejects.toThrow(ResponseError);
     });
 
@@ -90,7 +90,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       const mockSchedule = { id: 1, collaborator_cpf: '99988877766' };
       scheduleRepository.findScheduleById.mockResolvedValue(mockSchedule);
 
-      const user = { type: 'Colaborador', cpf: '45678901234' };
+      const user = { type: 'COLLABORATOR', cpf: '45678901234' };
       await expect(findScheduleByIdService(1, user)).rejects.toThrow("Acesso negado a este agendamento");
     });
 
@@ -98,14 +98,14 @@ describe('Schedule Service (schedule.service.js)', () => {
       const mockSchedule = { id: 1, collaborator_cpf: '45678901234' };
       scheduleRepository.findScheduleById.mockResolvedValue(mockSchedule);
 
-      const user = { type: 'Colaborador', cpf: '45678901234' };
+      const user = { type: 'COLLABORATOR', cpf: '45678901234' };
       const result = await findScheduleByIdService(1, user);
       expect(result.id).toBe(1);
     });
 
     it('deve lançar erro 404 se o agendamento não for encontrado', async () => {
       scheduleRepository.findScheduleById.mockResolvedValue(null);
-      await expect(findScheduleByIdService(1, { type: 'Admin' })).rejects.toThrow("Agendamento não encontrado");
+      await expect(findScheduleByIdService(1, { type: 'MANAGER' })).rejects.toThrow("Agendamento não encontrado");
     });
   });
 

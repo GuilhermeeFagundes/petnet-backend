@@ -2,7 +2,7 @@
  * Verifica se o usuário logado é Gerente (administrador).
  * @param {{ type: string }} user - req.user injetado pelo ensureAuthenticated
  */
-export const isAdmin = (user) => user.type === 'Gerente';
+export const isAdmin = (user) => user.type === 'MANAGER';
 
 /**
  * Verifica se o usuário logado é o dono do recurso (mesmo CPF da rota).
@@ -16,4 +16,4 @@ export const isSelf = (user, paramCpf) => user.cpf === paramCpf;
  * @param {{ type: string }} user - req.user injetado pelo ensureAuthenticated
  */
 export const isCollaboratorOrAdmin = (user) =>
-    ['Colaborador', 'Gerente'].includes(user.type);
+    ['COLLABORATOR', 'MANAGER'].includes(user.type);
