@@ -1,108 +1,79 @@
-import petRepository from "../repository/pet.repository.js";
-import { sanitizeData } from "../middlewares/utils.middleware.js";
-import { base64ToBuffer, bufferToBase64 } from "../utils/image.utils.js";
+import { listPets, findPetById, createPet, updatePet, deletePet, findPetsByUserCpf } from "../repository/pet.repository.js";
+import { sanitizeData } from "../utils/sanitize.utils.js";
+import { parseDateField } from "../utils/date.utils.js";
+import { mapBlobToField, mapFieldToBlob } from "../utils/image.utils.js";
 import { ResponseError } from "../errors/ResponseError.js";
 import { validateAndConvertEnums, translateEnums } from "../utils/enum.utils.js";
 import { PetEnums } from "../enums/pet.enums.js";
 
+const ALLOWED_CREATE_FIELDS = ["user_cpf", "name", "species", "breed", "size", "birth_date", "weight", "sex", "picture_blob", "observations"];
+const ALLOWED_UPDATE_FIELDS = ["name", "species", "breed", "size", "birth_date", "weight", "sex", "picture_blob", "observations"];
+
+/**
+ * Converte blob e traduz enums de um pet (ou lista de pets).
+ */
+const formatPet = (pet) => {
+    mapBlobToField(pet, 'petPicture');
+    return translateEnums(pet, PetEnums);
+};
+
 export const listPetsService = async () => {
-    const pets = await petRepository.listPets();
-    
-    return pets.map(pet => {
-        if (pet.picture_blob) {
-            pet.petPicture = bufferToBase64(pet.picture_blob);
-            delete pet.picture_blob;
-        }
-        return translateEnums(pet, PetEnums);
-    });
-}
+    const pets = await listPets();
+    return pets.map(formatPet);
+};
 
 export const findPetsByUserService = async (userCpf) => {
-    const pets = await petRepository.findPetsByUserCpf(userCpf);
-    
-     return pets.map(pet => {
-        if (pet.picture_blob) {
-            pet.petPicture = bufferToBase64(pet.picture_blob);
-            delete pet.picture_blob;
-        }
-        return translateEnums(pet, PetEnums);
-     });
-}
+    const pets = await findPetsByUserCpf(userCpf);
+    return pets.map(formatPet);
+};
 
 export const findPetByIdService = async (petId) => {
-    const pet = await petRepository.findPetById(petId);
-
+    const pet = await findPetById(petId);
     if (!pet) throw new ResponseError("Pet não encontrado", 404);
 
-    if (pet.picture_blob) {
-        pet.petPicture = bufferToBase64(pet.picture_blob);
-        delete pet.picture_blob;
-    }
-
-    return translateEnums(pet, PetEnums);
-}
+    return formatPet(pet);
+};
 
 export const createPetService = async (petData) => {
-    const { petPicture, ...rest } = petData;
+    const dataWithBlob = mapFieldToBlob(petData, 'petPicture');
+    const createData = sanitizeData(ALLOWED_CREATE_FIELDS, dataWithBlob);
 
-    const petWithPicture = {
-        ...rest,
-        picture_blob: petPicture ? base64ToBuffer(petPicture) : null
-    };
-
-    const allowedFields = ["user_cpf", "name", "species", "breed", "size", "birth_date", "weight", "sex", "picture_blob", "observations"];
-    const createData = sanitizeData(allowedFields, petWithPicture);
-
-    if (!createData || Object.keys(createData).length === 0) {
+    if (!createData) {
         throw new ResponseError("Dados inválidos para criação do pet", 400);
     }
 
-    // Validação e Conversão de Enums (entrada)
     validateAndConvertEnums(createData, PetEnums);
+    parseDateField(createData, 'birth_date');
 
-    const newPet = await petRepository.createPet(createData);
-    return translateEnums(newPet, PetEnums);
-}
+    const newPet = await createPet(createData);
+    return formatPet(newPet);
+};
 
 export const updatePetService = async (petId, petData) => {
-    const { petPicture, ...rest } = petData;
+    const dataWithBlob = mapFieldToBlob(petData, 'petPicture');
+    const updateData = sanitizeData(ALLOWED_UPDATE_FIELDS, dataWithBlob);
 
-    const petWithPicture = {
-        ...rest,
-        picture_blob: petPicture ? base64ToBuffer(petPicture) : undefined
-    };
-
-    const allowedFields = ["name", "species", "breed", "size", "birth_date", "weight", "sex", "picture_blob", "observations"];
-    const updateData = sanitizeData(allowedFields, petWithPicture);
-
-    //Verifica se foram enviados campos válidos
-    if (!updateData || Object.keys(updateData).length === 0) {
+    if (!updateData) {
         throw new ResponseError("Nenhum campo válido enviado para atualização", 400);
     }
 
-    // Validação e Conversão de Enums (entrada)
     validateAndConvertEnums(updateData, PetEnums);
+    parseDateField(updateData, 'birth_date');
 
-    // Verifica se o pet existe
-    const petExists = await petRepository.findPetById(petId);
-
+    const petExists = await findPetById(petId);
     if (!petExists) {
         throw new ResponseError("Pet não encontrado", 404);
     }
 
-    // Atualiza somente os campos filtrados
-    const updatedPet = await petRepository.updatePet(petId, updateData);
-    return translateEnums(updatedPet, PetEnums);
-}
+    const updatedPet = await updatePet(petId, updateData);
+    return formatPet(updatedPet);
+};
 
 export const deletePetService = async (petId) => {
-    const pet = await petRepository.findPetById(petId);
-
+    const pet = await findPetById(petId);
     if (!pet) {
         throw new ResponseError("Pet não encontrado", 404);
     }
 
-    await petRepository.deletePet(petId);
-}
-
-
+    await deletePet(petId);
+};

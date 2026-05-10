@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
-import { base64ToBuffer, bufferToBase64 } from "../utils/image.utils.js";
-import { sanitizeData } from "../middlewares/utils.middleware.js";
+import { mapBlobToField, mapFieldToBlob } from "../utils/image.utils.js";
+import { sanitizeData } from "../utils/sanitize.utils.js";
 import { ResponseError } from "../errors/ResponseError.js";
 import { validateAndConvertEnums, translateEnums } from "../utils/enum.utils.js";
+import { cleanCpf } from "../utils/validators.utils.js";
 import { UserEnums } from "../enums/user.enums.js";
 import {
     listUsers,
@@ -14,65 +15,42 @@ import {
     reactivateUser
 } from '../repository/user.repository.js';
 
-// --- USUÁRIOS ---
+const ALLOWED_USER_FIELDS = ["cpf", "email", "name", "password", "type", "picture_blob"];
+const ALLOWED_ADDRESS_FIELDS = ["type", "cep", "locaticion", "neighborhood", "address", "number", "complement"];
+const ALLOWED_CONTACT_FIELDS = ["number", "name"];
 
 export const listUsersService = async () => {
     const users = await listUsers();
     return users.map(user => {
-        if (user.picture_blob) {
-            user.userPicture = bufferToBase64(user.picture_blob);
-            delete user.picture_blob;
-        }
+        mapBlobToField(user, 'userPicture');
         return translateEnums(user, UserEnums);
     });
-}
+};
 
 export const showUserService = async (userCPF) => {
-    const cleanCpf = userCPF.replace(/\D/g, '');
-
-    if (cleanCpf.length !== 11) {
-        throw new ResponseError("CPF deve conter exatamente 11 dígitos", 400);
-    }
-    const user = await findUserByCpf(cleanCpf);
+    const cpf = cleanCpf(userCPF);
+    const user = await findUserByCpf(cpf);
 
     if (!user) {
         throw new ResponseError("Usuário não encontrado.", 404);
     }
 
-    if (user.picture_blob) {
-        user.userPicture = bufferToBase64(user.picture_blob);
-        delete user.picture_blob;
-    }
-
+    mapBlobToField(user, 'userPicture');
     return translateEnums(user, UserEnums);
-}
+};
 
 export const createUserService = async (fullData) => {
-
     const { contact, address, userPicture, ...user } = fullData;
 
-    const userWithPicture = {
-        ...user,
-        picture_blob: userPicture ? base64ToBuffer(userPicture) : undefined
-    };
+    const userWithPicture = mapFieldToBlob({ ...user, userPicture }, 'userPicture');
 
-    const allowedUserFields = ["cpf", "email", "name", "password", "type", "picture_blob"];
-    const userData = sanitizeData(allowedUserFields, userWithPicture);
+    const userData = sanitizeData(ALLOWED_USER_FIELDS, userWithPicture);
+    const addressData = sanitizeData(ALLOWED_ADDRESS_FIELDS, address);
+    const contactData = sanitizeData(ALLOWED_CONTACT_FIELDS, contact);
 
-    const allowedAddressFields = ["type", "cep", "locaticion", "neighborhood", "address", "number", "complement"];
-    const addressData = sanitizeData(allowedAddressFields, address);
+    userData.cpf = cleanCpf(userData.cpf);
 
-    const allowedContactFields = ["number", "name"];
-    const contactData = sanitizeData(allowedContactFields, contact);
-
-
-    const cleanCpf = userData.cpf.replace(/\D/g, '');
-
-    if (cleanCpf.length !== 11) {
-        throw new ResponseError("CPF deve conter exatamente 11 dígitos", 400);
-    }
-
-    const userExists = await findUserByCpf(cleanCpf);
+    const userExists = await findUserByCpf(userData.cpf);
     if (userExists) {
         throw new ResponseError("CPF já cadastrado no sistema.", 409);
     }
@@ -82,52 +60,36 @@ export const createUserService = async (fullData) => {
         throw new ResponseError("E-mail já cadastrado no sistema.", 409);
     }
 
-    // Validação e Conversão de Enum
     validateAndConvertEnums(userData, UserEnums);
 
-    // Hash da senha
     userData.password = await bcrypt.hash(userData.password, 10);
 
     const newUser = await createUser(userData, addressData, contactData);
     return translateEnums(newUser, UserEnums);
-}
+};
 
 export const updateUserService = async (userCPF, fullData) => {
     const { contact, address, userPicture, ...user } = fullData;
 
-    const userWithPicture = {
-        ...user,
-        picture_blob: userPicture ? base64ToBuffer(userPicture) : undefined
-    };
+    const userWithPicture = mapFieldToBlob({ ...user, userPicture }, 'userPicture');
 
-    const allowedUserFields = ["email", "name", "password", "type", "picture_blob"];
-    const userData = sanitizeData(allowedUserFields, userWithPicture);
+    const userData = sanitizeData(["email", "name", "password", "type", "picture_blob"], userWithPicture);
+    const addressData = sanitizeData(ALLOWED_ADDRESS_FIELDS, address);
+    const contactData = sanitizeData(ALLOWED_CONTACT_FIELDS, contact);
 
-    const allowedAddressFields = ["type", "cep", "locaticion", "neighborhood", "address", "number", "complement"];
-    const addressData = sanitizeData(allowedAddressFields, address);
-
-    const allowedContactFields = ["number", "name"];
-    const contactData = sanitizeData(allowedContactFields, contact);
-
-    const cleanCpf = userCPF.replace(/\D/g, '');
-
-    if (cleanCpf.length !== 11) {
-        throw new ResponseError("CPF deve conter exatamente 11 dígitos", 400);
-    }
+    const cpf = cleanCpf(userCPF);
 
     if (!userData) {
         throw new ResponseError("Estrutura de dados inválida para atualização.", 400);
     }
 
-    // Validação e Conversão de Enum
     validateAndConvertEnums(userData, UserEnums);
 
-    const userExists = await findUserByCpf(cleanCpf);
+    const userExists = await findUserByCpf(cpf);
     if (!userExists) {
         throw new ResponseError("Usuário não cadastrado no sistema.", 404);
     }
 
-    // Valida se o novo e-mail já não pertence a outra pessoa
     if (userData.email && userData.email !== userExists.email) {
         const emailTaken = await findUserByEmail(userData.email);
         if (emailTaken) {
@@ -135,35 +97,32 @@ export const updateUserService = async (userCPF, fullData) => {
         }
     }
 
-    // Se houver atualização de senha, refazer o hash
     if (userData.password) {
         userData.password = await bcrypt.hash(userData.password, 10);
     }
 
-    const updatedUser = await updateUser(cleanCpf, userData, addressData, contactData);
+    const updatedUser = await updateUser(cpf, userData, addressData, contactData);
     return translateEnums(updatedUser, UserEnums);
-}
+};
 
 export const deleteUserService = async (userCPF) => {
-    const cleanCpf = userCPF.replace(/\D/g, '');
+    const cpf = cleanCpf(userCPF);
 
-    const findUser = await findUserByCpf(cleanCpf);
-
-    if (!findUser) {
+    const user = await findUserByCpf(cpf);
+    if (!user) {
         throw new ResponseError("Usuário não cadastrado no sistema.", 404);
     }
 
-    return await deleteUser(cleanCpf);
-}
+    return await deleteUser(cpf);
+};
 
 export const reactivateUserService = async (userCPF) => {
-    const cleanCpf = userCPF.replace(/\D/g, '');
+    const cpf = cleanCpf(userCPF);
 
-    const findUser = await findUserByCpf(cleanCpf);
-
-    if (!findUser) {
+    const user = await findUserByCpf(cpf);
+    if (!user) {
         throw new ResponseError("Usuário não cadastrado no sistema.", 404);
     }
 
-    return await reactivateUser(cleanCpf);
-}
+    return await reactivateUser(cpf);
+};

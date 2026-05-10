@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "petnet-backend-collection",
 		"name": "PetNet API",
-		"description": "API para o sistema PetNet - Gestão de Pets e Usuários",
+		"description": "API para o sistema PetNet - Gestão de Pets e Usuários. Esta coleção contém todos os endpoints do projeto configurados com variáveis e dados realistas.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -19,7 +19,8 @@
 					"path": [
 						"healthcheck"
 					]
-				}
+				},
+				"description": "Verifica se o servidor está online."
 			},
 			"response": []
 		},
@@ -28,6 +29,22 @@
 			"item": [
 				{
 					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.user && response.user.cpf) {",
+									"        pm.collectionVariables.set(\"clientCpf\", response.user.cpf);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -50,18 +67,35 @@
 								"auth",
 								"register"
 							]
-						}
+						},
+						"description": "Registra um novo usuário cliente no sistema."
 					},
 					"response": []
 				},
 				{
 					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.user && response.user.cpf) {",
+									"        pm.collectionVariables.set(\"userCpf\", response.user.cpf);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"joao@email.com\",\n    \"password\": \"Senha@123\"\n}",
+							"raw": "{\n    \"email\": \"admin@petnet.com\",\n    \"password\": \"Senha@123\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -78,7 +112,8 @@
 								"auth",
 								"login"
 							]
-						}
+						},
+						"description": "Autentica um usuário e define o cookie de token."
 					},
 					"response": []
 				},
@@ -97,11 +132,71 @@
 								"auth",
 								"logout"
 							]
-						}
+						},
+						"description": "Finaliza a sessão do usuário limpando o cookie de token."
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"joao@email.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/forgot-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"forgot-password"
+							]
+						},
+						"description": "Solicita recuperação de senha por e-mail."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"{{resetToken}}\",\n    \"password\": \"NovaSenha@123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/reset-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Redefine a senha utilizando o token recebido por e-mail."
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "Endpoints de autenticação e recuperação de conta."
 		},
 		{
 			"name": "Users",
@@ -120,7 +215,8 @@
 								"api",
 								"users"
 							]
-						}
+						},
+						"description": "Lista todos os usuários. Requer privilégios de Administrador."
 					},
 					"response": []
 				},
@@ -130,16 +226,45 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/users/12345678901",
+							"raw": "{{baseUrl}}/api/users/{{userCpf}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"users",
-								"12345678901"
+								"{{userCpf}}"
 							]
-						}
+						},
+						"description": "Retorna os detalhes de um usuário específico."
+					},
+					"response": []
+				},
+				{
+					"name": "Create User (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"cpf\": \"12345678902\",\n    \"password\": \"Senha@123\",\n    \"type\": \"Colaborador\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Cria um novo usuário. Requer privilégios de Administrador."
 					},
 					"response": []
 				},
@@ -150,7 +275,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"password\": \"SenhaNova@123\",\n    \"address\": {\n        \"type\": \"Trabalho\",\n        \"cep\": \"12345678\",\n        \"locaticion\": \"{{$randomStreetAddress}}\",\n        \"neighborhood\": \"Bairro Comercial\",\n        \"address\": \"Avenida Central\",\n        \"number\": \"456\",\n        \"complement\": \"Sala 2\"\n    }\n}",
+							"raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"address\": {\n        \"type\": \"Trabalho\",\n        \"cep\": \"12345678\",\n        \"locaticion\": \"{{$randomStreetAddress}}\",\n        \"neighborhood\": \"Bairro Comercial\",\n        \"address\": \"Avenida Central\",\n        \"number\": \"456\",\n        \"complement\": \"Sala 2\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -158,16 +283,17 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/users/12345678901",
+							"raw": "{{baseUrl}}/api/users/{{userCpf}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"users",
-								"12345678901"
+								"{{userCpf}}"
 							]
-						}
+						},
+						"description": "Atualiza os dados de um usuário."
 					},
 					"response": []
 				},
@@ -177,16 +303,17 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/users/12345678901",
+							"raw": "{{baseUrl}}/api/users/{{userCpf}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"users",
-								"12345678901"
+								"{{userCpf}}"
 							]
-						}
+						},
+						"description": "Remove um usuário (soft delete)."
 					},
 					"response": []
 				},
@@ -196,7 +323,7 @@
 						"method": "PATCH",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/users/reactivate/12345678901",
+							"raw": "{{baseUrl}}/api/users/reactivate/{{userCpf}}",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -204,13 +331,15 @@
 								"api",
 								"users",
 								"reactivate",
-								"12345678901"
+								"{{userCpf}}"
 							]
-						}
+						},
+						"description": "Reativa um usuário excluído. Requer privilégios de Administrador."
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "Gerenciamento de usuários e perfis."
 		},
 		{
 			"name": "Pets",
@@ -229,7 +358,8 @@
 								"api",
 								"pets"
 							]
-						}
+						},
+						"description": "Lista todos os pets cadastrados. Requer privilégios de Administrador."
 					},
 					"response": []
 				},
@@ -248,7 +378,8 @@
 								"pets",
 								"meus-pets"
 							]
-						}
+						},
+						"description": "Lista os pets pertencentes ao usuário autenticado."
 					},
 					"response": []
 				},
@@ -258,27 +389,44 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/pets/1",
+							"raw": "{{baseUrl}}/api/pets/{{petId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"pets",
-								"1"
+								"{{petId}}"
 							]
-						}
+						},
+						"description": "Retorna os detalhes de um pet específico."
 					},
 					"response": []
 				},
 				{
 					"name": "Create Pet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.id) {",
+									"        pm.collectionVariables.set(\"petId\", response.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"user_cpf\": \"12345678901\",\n    \"name\": \"Rex\",\n    \"species\": \"Cachorro\",\n    \"breed\": \"Labrador\",\n    \"size\": \"Grande\",\n    \"birth_date\": \"2020-01-01T00:00:00Z\",\n    \"weight\": 30.5,\n    \"sex\": \"Macho\",\n    \"observations\": \"Muito dócil\"\n}",
+							"raw": "{\n    \"user_cpf\": \"{{clientCpf}}\",\n    \"name\": \"Rex\",\n    \"species\": \"dog\",\n    \"breed\": \"Labrador\",\n    \"size\": \"L\",\n    \"birth_date\": \"2020-01-01T00:00:00Z\",\n    \"weight\": 30.5,\n    \"sex\": \"M\",\n    \"observations\": \"Muito dócil\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -294,7 +442,8 @@
 								"api",
 								"pets"
 							]
-						}
+						},
+						"description": "Cadastra um novo pet associado a um usuário."
 					},
 					"response": []
 				},
@@ -305,7 +454,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Rex Atualizado\",\n    \"weight\": 32.0\n}",
+							"raw": "{\n    \"name\": \"Rex Atualizado\",\n    \"weight\": 32.0,\n    \"size\": \"L\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -313,16 +462,17 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/pets/1",
+							"raw": "{{baseUrl}}/api/pets/{{petId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"pets",
-								"1"
+								"{{petId}}"
 							]
-						}
+						},
+						"description": "Atualiza os dados de um pet."
 					},
 					"response": []
 				},
@@ -332,20 +482,22 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/pets/1",
+							"raw": "{{baseUrl}}/api/pets/{{petId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"pets",
-								"1"
+								"{{petId}}"
 							]
-						}
+						},
+						"description": "Remove um pet (soft delete)."
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "Gerenciamento de pets."
 		},
 		{
 			"name": "Services",
@@ -364,7 +516,8 @@
 								"api",
 								"services"
 							]
-						}
+						},
+						"description": "Lista todos os serviços ativos oferecidos pelo PetNet."
 					},
 					"response": []
 				},
@@ -374,21 +527,38 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/services/1",
+							"raw": "{{baseUrl}}/api/services/{{serviceId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"services",
-								"1"
+								"{{serviceId}}"
 							]
-						}
+						},
+						"description": "Retorna os detalhes de um serviço específico. Requer privilégios de Administrador."
 					},
 					"response": []
 				},
 				{
 					"name": "Create Service (Admin Only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.id) {",
+									"        pm.collectionVariables.set(\"serviceId\", response.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -410,7 +580,8 @@
 								"api",
 								"services"
 							]
-						}
+						},
+						"description": "Cria um novo tipo de serviço. Requer privilégios de Administrador."
 					},
 					"response": []
 				},
@@ -429,16 +600,17 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/services/1",
+							"raw": "{{baseUrl}}/api/services/{{serviceId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"services",
-								"1"
+								"{{serviceId}}"
 							]
-						}
+						},
+						"description": "Atualiza os dados de um serviço existente. Requer privilégios de Administrador."
 					},
 					"response": []
 				},
@@ -448,16 +620,17 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/services/1",
+							"raw": "{{baseUrl}}/api/services/{{serviceId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"services",
-								"1"
+								"{{serviceId}}"
 							]
-						}
+						},
+						"description": "Desativa um serviço (soft delete). Requer privilégios de Administrador."
 					},
 					"response": []
 				},
@@ -467,28 +640,212 @@
 						"method": "PATCH",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/services/1/reactivate",
+							"raw": "{{baseUrl}}/api/services/{{serviceId}}/reactivate",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"services",
-								"1",
+								"{{serviceId}}",
 								"reactivate"
 							]
-						}
+						},
+						"description": "Reativa um serviço desativado. Requer privilégios de Administrador."
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "Gerenciamento do catálogo de serviços."
+		},
+		{
+			"name": "Schedules",
+			"item": [
+				{
+					"name": "List Schedules",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/schedules?initial_date=2024-01-01T00:00:00.000Z&final_date=2024-12-31T23:59:59.000Z",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"schedules"
+							],
+							"query": [
+								{
+									"key": "initial_date",
+									"value": "2024-01-01T00:00:00.000Z"
+								},
+								{
+									"key": "final_date",
+									"value": "2024-12-31T23:59:59.000Z"
+								}
+							]
+						},
+						"description": "Lista os agendamentos. Clientes veem os seus, Colaboradores/Admin veem todos filtrados por data."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Schedule by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/schedules/{{scheduleId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"schedules",
+								"{{scheduleId}}"
+							]
+						},
+						"description": "Retorna os detalhes de um agendamento específico."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Schedule (Admin Only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.id) {",
+									"        pm.collectionVariables.set(\"scheduleId\", response.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"client_cpf\": \"{{clientCpf}}\",\n    \"pet_id\": {{petId}},\n    \"collaborator_cpf\": \"{{adminCpf}}\",\n    \"date_time\": \"{{$isoTimestamp}}\",\n    \"duration\": \"ONE_HOUR\",\n    \"status\": \"SCHEDULED\",\n    \"observation\": \"Cuidado extra com as patas\",\n    \"services\": [{{serviceId}}]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/schedules",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"schedules"
+							]
+						},
+						"description": "Cria um novo agendamento. Requer privilégios de Administrador."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Schedule (Admin Only)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"date_time\": \"{{$isoTimestamp}}\",\n    \"duration\": \"THIRTY_MIN\",\n    \"status\": \"CONFIRMED\",\n    \"services\": [{{serviceId}}]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/schedules/{{scheduleId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"schedules",
+								"{{scheduleId}}"
+							]
+						},
+						"description": "Atualiza os dados de um agendamento. Requer privilégios de Administrador."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Schedule (Admin Only)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/schedules/{{scheduleId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"schedules",
+								"{{scheduleId}}"
+							]
+						},
+						"description": "Remove um agendamento. Requer privilégios de Administrador."
+					},
+					"response": []
+				}
+			],
+			"description": "Gerenciamento de horários e serviços agendados."
 		}
 	],
-
 	"variable": [
 		{
 			"key": "baseUrl",
 			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "adminCpf",
+			"value": "12345678901",
+			"type": "string"
+		},
+		{
+			"key": "clientCpf",
+			"value": "10987654321",
+			"type": "string"
+		},
+		{
+			"key": "userCpf",
+			"value": "12345678901",
+			"type": "string"
+		},
+		{
+			"key": "petId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "serviceId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "scheduleId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "resetToken",
+			"value": "",
 			"type": "string"
 		}
 	]

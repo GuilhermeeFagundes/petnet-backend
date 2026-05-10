@@ -1,13 +1,18 @@
 import { registerService, loginService } from '../services/auth.service.js';
 import { cookieOptions } from '../utils/cookie.utils.js';
+import { requireFields } from '../utils/validators.utils.js';
 
 export const registerController = async (req, res) => {
+    requireFields(req.body, ['cpf', 'email', 'name', 'password']);
+
     const { token, user } = await registerService(req.body);
     res.cookie('token', token, cookieOptions);
     return res.status(201).json({ user });
 };
 
 export const loginController = async (req, res) => {
+    requireFields(req.body, ['email', 'password']);
+
     const { email, password } = req.body;
     const { token, user } = await loginService(email, password);
 
@@ -16,7 +21,6 @@ export const loginController = async (req, res) => {
 };
 
 export const logoutController = (req, res) => {
-    // Limpa o cookie sem precisar conhecer o token (basta sobrescrever com maxAge: 0)
     res.clearCookie('token', { httpOnly: true, sameSite: 'strict' });
     return res.status(200).json({ message: 'Logout realizado com sucesso.' });
 };
