@@ -102,8 +102,8 @@ model pet {
   created_at   DateTime    @default(now()) @db.DateTime(0)
   excluded_at  DateTime?   @db.DateTime(0)
 
-  tutor     user       @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_pet_user_cpf")
-  schedules schedule[]
+  tutor        user       @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_pet_user_cpf")
+  schedules    schedule[]
 
   @@index([user_cpf], map: "fk_pet_user_cpf_idx")
 }
@@ -192,11 +192,10 @@ model schedule {
   observation      String?           @db.Text
   created_at       DateTime          @default(now()) @db.DateTime(0)
 
-  client       user @relation("client_schedules", fields: [client_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction)
-  pet          pet  @relation(fields: [pet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  collaborator user @relation("collaborator_schedules", fields: [collaborator_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction)
-
-  services service[]
+  client           user   @relation("client_schedules", fields: [client_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction)
+  pet              pet    @relation(fields: [pet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  collaborator     user   @relation("collaborator_schedules", fields: [collaborator_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction)
+  services         service[]
 
   @@index([client_cpf], map: "schedule_client_cpf_idx")
   @@index([pet_id], map: "schedule_pet_id_idx")

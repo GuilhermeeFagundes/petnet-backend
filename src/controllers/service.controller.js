@@ -1,6 +1,7 @@
 import { listServicesService, findServiceByIdService, createServiceService, updateServiceService, deleteServiceService, reactivateServiceService,
 } from "../services/service.service.js";
 import { ResponseError } from "../errors/ResponseError.js";
+import { requireFields } from "../utils/validators.utils.js";
 
 // List all services
 export const listServicesController = async (req, res) => {
@@ -22,15 +23,9 @@ export const findServiceByIdController = async (req, res) => {
 
 // Create new service
 export const createServiceController = async (req, res) => {
-  const serviceData = req.body;
-  const { name, description } = serviceData;
+  requireFields(req.body, ['name', 'description']);
 
-  // Validate required fields
-  if (!name || !description) {
-    throw new ResponseError("Campos obrigatórios faltando (name e description)", 400);
-  }
-
-  const newService = await createServiceService(serviceData);
+  const newService = await createServiceService(req.body);
   return res.status(201).json(newService);
 }
 

@@ -1,6 +1,25 @@
 import { ResponseError } from "../errors/ResponseError.js";
 
 /**
+ * Valida se todos os campos obrigatórios estão presentes no objeto de dados.
+ * Lança ResponseError 400 informando quais campos estão faltando.
+ *
+ * @param {object} data - Objeto com os dados recebidos (ex: req.body)
+ * @param {string[]} fields - Lista de nomes dos campos obrigatórios
+ * @throws {ResponseError} Se algum campo obrigatório estiver ausente
+ */
+export const requireFields = (data, fields) => {
+    const missing = fields.filter(field => data[field] === undefined || data[field] === null || data[field] === '');
+
+    if (missing.length > 0) {
+        throw new ResponseError(
+            `Campos obrigatórios faltando: ${missing.join(', ')}`,
+            400
+        );
+    }
+};
+
+/**
  * Valida se a senha atende aos requisitos mínimos de segurança:
  * - Mínimo de 8 caracteres
  * - Pelo menos 1 letra maiúscula

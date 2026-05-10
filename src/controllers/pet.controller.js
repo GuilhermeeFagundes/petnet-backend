@@ -1,5 +1,6 @@
 import { listPetsService, findPetByIdService, createPetService, updatePetService, deletePetService, findPetsByUserService } from "../services/pet.service.js";
 import { ResponseError } from "../errors/ResponseError.js";
+import { requireFields } from "../utils/validators.utils.js";
 
 // puxa pets do usuário
 export const findPetsByUserController = async (req, res) => {
@@ -28,15 +29,9 @@ export const findPetByIdController = async (req, res) => {
 
 // Criar Pet
 export const createPetController = async (req, res) => {
-    const petParams = req.body;
-    const { user_cpf, name, species, size } = petParams;
+    requireFields(req.body, ['user_cpf', 'name', 'species', 'size']);
 
-    // validação da entrada dos campos obrigatórios
-    if (!user_cpf || !name || !species || !size) {
-        throw new ResponseError("Campos obrigatórios faltando. (cpf, name, species e size)", 400);
-    }
-
-    const newPet = await createPetService(petParams);
+    const newPet = await createPetService(req.body);
     return res.status(201).json(newPet);
 }
 

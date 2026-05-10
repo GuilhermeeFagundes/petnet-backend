@@ -1,6 +1,10 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend;
+const getResendClient = () => {
+    if (!resend) resend = new Resend(process.env.RESEND_API_KEY);
+    return resend;
+};
 
 
 /*Envia o e-mail de recuperação de senha.
@@ -8,7 +12,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 @param {string} resetLink - Link completo com o token (ex: https://petnet.com/reset?token=abc123) */
 
 export const sendPasswordResetEmail = async (toEmail, resetLink) => {
-    await resend.emails.send({
+    await getResendClient().emails.send({
         from: process.env.RESEND_FROM_EMAIL, // ex: 'PetNet <noreply@petnet.com.br>'
         to: toEmail,
         subject: 'Recuperação de senha — PetNet',
