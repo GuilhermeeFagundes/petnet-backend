@@ -20,7 +20,7 @@ export const listSchedules = async (initialDate, finalDate, filters = {}) => {
       client: { select: { name: true } },
       pet: {
         include: {
-          user: { select: { name: true } }
+          tutor: { select: { name: true } }
         }
       },
       collaborator: { select: { name: true } },
