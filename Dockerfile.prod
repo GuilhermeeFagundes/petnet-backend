@@ -11,6 +11,9 @@ RUN npm ci
 COPY prisma ./prisma
 RUN npm run build:prod        # ← prisma generate aqui
 
+# Copiamos o código para o estágio de builder caso queiramos rodar testes
+COPY . .
+
 
 # ---- Stage 2: Production ----
 FROM node:22-alpine AS production

@@ -32,7 +32,7 @@ docker compose -f $COMPOSE_FILE --env-file $ENV_FILE build --no-cache
 
 # ---- 3. Rodar Testes (Dentro do Docker) ----
 echo -e "${YELLOW}🧪 Rodando testes de segurança dentro do container...${NC}"
-if ! docker compose -f $COMPOSE_FILE --env-file $ENV_FILE run --rm api npm test -- --watchAll=false; then
+if ! docker compose -f $COMPOSE_FILE --env-file $ENV_FILE run --rm test npm test -- --watchAll=false; then
   echo -e "${RED}❌ OS TESTES FALHARAM!${NC}"
   echo -e "${RED}Abortando deploy para manter a versão atual estável no ar.${NC}"
   exit 1

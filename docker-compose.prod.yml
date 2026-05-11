@@ -54,6 +54,14 @@ services:
     networks:
       - internal
 
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: builder
+    networks:
+      - internal
+
 volumes:
   db_data_prod:
 
