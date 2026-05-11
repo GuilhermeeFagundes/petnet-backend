@@ -9,7 +9,7 @@
     "dev": "nodemon src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --watchAll"
+    "test": "npx jest --watchAll"
   },
   "repository": {
     "type": "git",
