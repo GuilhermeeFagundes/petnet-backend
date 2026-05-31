@@ -14,10 +14,16 @@ export const errorMiddleware = (err, req, res, next) => {
     return res.status(404).json({ error: 'O recurso solicitado não foi encontrado.' });
   }
 
-  // Log de erros inesperados (importante para debug)
-  console.error(' [Unexpected Error]:', err);
+  // Log sanitizado: apenas campos seguros para evitar vazamento de dados sensíveis
+  // (queries SQL, stack traces com paths internos, dados do req.body, etc.)
+  console.error('[Unexpected Error]', {
+    message: err.message,
+    code: err.code,
+    path: req.path,
+    method: req.method,
+  });
 
-  return res.status(500).json({ 
-    error: 'Ocorreu um erro inesperado no servidor.' 
+  return res.status(500).json({
+    error: 'Ocorreu um erro inesperado no servidor.'
   });
 };

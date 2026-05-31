@@ -5,11 +5,12 @@ services:
     ports:
       - "5678:3306"
     environment:
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: netcao
-      MYSQL_DATABASE: netcao_development
-      MYSQL_USER: netcao
-      MYSQL_PASSWORD: netcao
+      # Restrito a localhost — root não aceita conexões externas
+      MYSQL_ROOT_HOST: "localhost"
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -33,9 +34,9 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env  # Carrega JWT_SECRET, JWT_EXPIRES_IN e demais variáveis locais
+      - .env  # Carrega JWT_SECRET, JWT_EXPIRES_IN, DB_* e demais variáveis locais
     environment:
-      DATABASE_URL: "mysql://root:netcao@db:3306/netcao_development"
+      DATABASE_URL: "mysql://root:${DB_PASSWORD}@db:3306/${DB_NAME}"
       PORT: 3000
       NODE_ENV: development
     volumes:
