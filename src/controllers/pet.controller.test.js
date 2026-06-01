@@ -4,6 +4,7 @@ import * as petService from '../services/pet.service.js';
 import { ResponseError } from '../errors/ResponseError.js';
 
 jest.mock('../services/pet.service.js');
+jest.mock('../utils/log.utils.js');
 
 describe('Pet Controller (pet.controller.js)', () => {
   let req, res;
@@ -64,7 +65,7 @@ describe('Pet Controller (pet.controller.js)', () => {
 
       await petController.createPetController(req, res);
 
-      expect(petService.createPetService).toHaveBeenCalledWith(req.body);
+      expect(petService.createPetService).toHaveBeenCalledWith(req.body, req.user);
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith(mockPet);
     });
@@ -88,7 +89,7 @@ describe('Pet Controller (pet.controller.js)', () => {
 
       await petController.updatePetController(req, res);
 
-      expect(petService.updatePetService).toHaveBeenCalledWith(5, req.body);
+      expect(petService.updatePetService).toHaveBeenCalledWith(5, req.body, req.user);
       expect(res.status).toHaveBeenCalledWith(200);
     });
   });
@@ -100,7 +101,7 @@ describe('Pet Controller (pet.controller.js)', () => {
 
       await petController.deletePetController(req, res);
 
-      expect(petService.deletePetService).toHaveBeenCalledWith(5);
+      expect(petService.deletePetService).toHaveBeenCalledWith(5, req.user);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ message: 'Pet excluído com sucesso' });
     });
