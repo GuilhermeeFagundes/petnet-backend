@@ -17,14 +17,16 @@ export const createNotificationService = async (data) => {
     const { user_cpf, topic, message } = data;
 
     if (!user_cpf || !topic || !message) {
-        throw new ResponseError("Campos obrigatórios ausentes: user_cpf, topic ou message.", 400);
+        console.error("[Notificação] Campos obrigatórios ausentes: user_cpf, topic ou message.");
+        return false;
     }
 
     const cpf = cleanCpf(user_cpf);
     const userExists = await findUserByCpf(cpf);
 
     if (!userExists) {
-        throw new ResponseError("Usuário não encontrado.", 404);
+        console.error(`[Notificação] Usuário com CPF ${cpf} não encontrado.`);
+        return false;
     }
 
     return await createNotification({
@@ -33,6 +35,8 @@ export const createNotificationService = async (data) => {
         message
     });
 };
+
+
 
 export const markAsReadService = async (id, userCPF) => {
     const cpf = cleanCpf(userCPF);

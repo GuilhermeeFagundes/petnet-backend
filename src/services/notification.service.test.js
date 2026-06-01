@@ -28,6 +28,8 @@ describe('Notification Service (notification.service.js)', () => {
         });
     });
 
+
+
     describe('createNotificationService', () => {
         const validData = { user_cpf: '12345678901', topic: 'Promoção', message: 'Desconto!' };
 
@@ -42,13 +44,24 @@ describe('Notification Service (notification.service.js)', () => {
             expect(result.id).toBe(1);
         });
 
-        it('deve lançar erro se faltarem campos obrigatórios', async () => {
-            await expect(createNotificationService({ topic: 'Promoção' })).rejects.toThrow(ResponseError);
+        it('deve retornar false e logar erro se faltarem campos obrigatórios', async () => {
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            const result = await createNotificationService({ topic: 'Promoção' });
+            
+            expect(result).toBe(false);
+            expect(consoleSpy).toHaveBeenCalled();
+            consoleSpy.mockRestore();
         });
 
-        it('deve lançar erro se o usuário não for encontrado', async () => {
+        it('deve retornar false e logar erro se o usuário não for encontrado', async () => {
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
             userRepository.findUserByCpf.mockResolvedValue(null);
-            await expect(createNotificationService(validData)).rejects.toThrow('Usuário não encontrado.');
+            
+            const result = await createNotificationService(validData);
+            
+            expect(result).toBe(false);
+            expect(consoleSpy).toHaveBeenCalled();
+            consoleSpy.mockRestore();
         });
     });
 

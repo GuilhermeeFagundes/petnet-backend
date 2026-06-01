@@ -5,8 +5,8 @@ services:
     ports:
       - "5678:3306"
     environment:
-      # Restrito a localhost — root não aceita conexões externas
-      MYSQL_ROOT_HOST: "localhost"
+      # Permite acesso root da rede do Docker para rodar migrations
+      MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
@@ -36,7 +36,7 @@ services:
     env_file:
       - .env  # Carrega JWT_SECRET, JWT_EXPIRES_IN, DB_* e demais variáveis locais
     environment:
-      DATABASE_URL: "mysql://root:${DB_PASSWORD}@db:3306/${DB_NAME}"
+      DATABASE_URL: "mysql://root:${DB_ROOT_PASSWORD}@db:3306/${DB_NAME}"
       PORT: 3000
       NODE_ENV: development
     volumes:

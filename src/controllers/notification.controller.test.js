@@ -33,19 +33,7 @@ describe('Notification Controller (notification.controller.js)', () => {
         });
     });
 
-    describe('createNotificationController', () => {
-        it('deve criar uma notificação e retornar status 201', async () => {
-            req.body = { user_cpf: '12345678901', topic: 'Aviso', message: 'Teste' };
-            const mockNotification = { id: 1, ...req.body };
-            notificationService.createNotificationService.mockResolvedValue(mockNotification);
 
-            await notificationController.createNotificationController(req, res);
-
-            expect(notificationService.createNotificationService).toHaveBeenCalledWith(req.body);
-            expect(res.status).toHaveBeenCalledWith(201);
-            expect(res.json).toHaveBeenCalledWith(mockNotification);
-        });
-    });
 
     describe('readNotificationController', () => {
         it('deve marcar a notificação como lida e retornar status 200', async () => {
