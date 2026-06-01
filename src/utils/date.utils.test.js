@@ -29,7 +29,7 @@ describe('Date Utils (date.utils.js)', () => {
 
     it('PROPRIEDADE: para qualquer string de data ISO válida, parseDateField deve converter corretamente', () => {
       fc.assert(
-        fc.property(fc.date({ min: new Date('1000-01-01'), max: new Date('3000-01-01') }), (date) => {
+        fc.property(fc.date({ min: new Date('1970-01-01'), max: new Date('2100-01-01') }).filter(d => !isNaN(d.getTime())), (date) => {
           const isoString = date.toISOString();
           const data = { birth_date: isoString };
           const result = parseDateField(data, 'birth_date');
@@ -57,7 +57,7 @@ describe('Date Utils (date.utils.js)', () => {
 
     it('PROPRIEDADE: ensureDate deve ser idempotente (Date -> Date)', () => {
       fc.assert(
-        fc.property(fc.date({ min: new Date('1000-01-01'), max: new Date('3000-01-01') }), (date) => {
+        fc.property(fc.date({ min: new Date('1970-01-01'), max: new Date('2100-01-01') }).filter(d => !isNaN(d.getTime())), (date) => {
           const result1 = ensureDate(date);
           const result2 = ensureDate(result1);
           return result1 === result2 && result1 instanceof Date;

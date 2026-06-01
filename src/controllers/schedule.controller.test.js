@@ -9,6 +9,10 @@ import {
 } from './schedule.controller.js';
 import * as scheduleService from '../services/schedule.service.js';
 import { ResponseError } from '../errors/ResponseError.js';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
+const TEST_CPF_2 = generateCpf();
 
 jest.mock('../services/schedule.service.js');
 
@@ -16,7 +20,7 @@ describe('Schedule Controller (schedule.controller.js)', () => {
   let req, res;
 
   beforeEach(() => {
-    req = { params: {}, body: {}, query: {}, user: { cpf: '12345678900', type: 'CUSTOMER' } };
+    req = { params: {}, body: {}, query: {}, user: { cpf: TEST_CPF_2, type: 'CUSTOMER' } };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -58,7 +62,7 @@ describe('Schedule Controller (schedule.controller.js)', () => {
 
   describe('createScheduleController', () => {
     it('deve criar um agendamento e retornar status 201', async () => {
-      req.body = { client_cpf: '12345678901', pet_id: 1, collaborator_cpf: '45678901234', date_time: '2023-10-10' };
+      req.body = { client_cpf: TEST_CPF_1, pet_id: 1, collaborator_cpf: '45678901234', date_time: '2023-10-10' };
       const mockNewSchedule = { id: 1, ...req.body };
       scheduleService.createScheduleService.mockResolvedValue(mockNewSchedule);
 
@@ -70,7 +74,7 @@ describe('Schedule Controller (schedule.controller.js)', () => {
     });
 
     it('deve lançar ResponseError se campos obrigatórios estiverem faltando', async () => {
-      req.body = { client_cpf: '12345678901' };
+      req.body = { client_cpf: TEST_CPF_1 };
       await expect(createScheduleController(req, res)).rejects.toThrow(ResponseError);
     });
   });

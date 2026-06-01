@@ -1,7 +1,10 @@
 import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals';
-import { requireFields, parseId, cleanCpf, validatePassword } from './validators.utils.js';
+import { requireFields, parseId, cleanCpf, validatePassword, validateEmail } from './validators.utils.js';
 import { ResponseError } from '../errors/ResponseError.js';
 import fc from 'fast-check';
+import { generateCpf } from "./test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 describe('Validator Utils (validators.utils.js)', () => {
   describe('requireFields', () => {
@@ -35,8 +38,8 @@ describe('Validator Utils (validators.utils.js)', () => {
 
   describe('parseId', () => {
     it('deve retornar um número quando passado um ID válido em formato de string', () => {
-      const id = parseId('12345678901', 'ID Usuário');
-      expect(id).toBe(12345678901);
+      const id = parseId(TEST_CPF_1, 'ID Usuário');
+      expect(id).toBe(Number(TEST_CPF_1));
     });
 
     it('deve lançar um erro 400 se o ID não for um número válido (ex: letras)', () => {
@@ -62,9 +65,9 @@ describe('Validator Utils (validators.utils.js)', () => {
 
   describe('cleanCpf', () => {
     it('deve remover todos os caracteres não numéricos de um CPF válido', () => {
-      const cpf = '123.456.789-00';
+      const cpf = `${TEST_CPF_1.slice(0, 3)}.${TEST_CPF_1.slice(3, 6)}.${TEST_CPF_1.slice(6, 9)}-${TEST_CPF_1.slice(9, 11)}`;
       const result = cleanCpf(cpf);
-      expect(result).toBe('12345678900');
+      expect(result).toBe(TEST_CPF_1);
     });
 
     it('deve lançar erro 400 se o CPF não tiver 11 dígitos', () => {
@@ -79,10 +82,24 @@ describe('Validator Utils (validators.utils.js)', () => {
       }
     });
 
-    it('PROPRIEDADE: para qualquer string com 11 dígitos misturados, cleanCpf deve retornar apenas os 11 dígitos', () => {
+    it('deve lançar erro se o CPF for uma sequência repetida', () => {
+      expect(() => cleanCpf('00000000000')).toThrow('CPF inválido.');
+    });
+
+    it('deve lançar erro se o primeiro dígito verificador for inválido', () => {
+      const invalidCpf = TEST_CPF_1.slice(0, 9) + (parseInt(TEST_CPF_1[9]) === 9 ? '0' : '9') + TEST_CPF_1[10];
+      expect(() => cleanCpf(invalidCpf)).toThrow('CPF inválido.');
+    });
+
+    it('deve lançar erro se o segundo dígito verificador for inválido', () => {
+      const invalidCpf = TEST_CPF_1.slice(0, 10) + (parseInt(TEST_CPF_1[10]) === 9 ? '0' : '9');
+      expect(() => cleanCpf(invalidCpf)).toThrow('CPF inválido.');
+    });
+
+    it('PROPRIEDADE: para qualquer CPF válido, a limpeza com ruído deve retornar apenas os 11 dígitos', () => {
       fc.assert(
         fc.property(
-          fc.stringMatching(/^[0-9]{11}$/),
+          fc.constant(TEST_CPF_1),
           fc.array(fc.stringMatching(/^[^0-9]$/), { maxLength: 10 }),
           (digits, noise) => {
             // Intercala ruído nos dígitos
@@ -100,6 +117,20 @@ describe('Validator Utils (validators.utils.js)', () => {
     });
   });
 
+  describe('validateEmail', () => {
+    it('deve passar se o email for válido', () => {
+      expect(() => validateEmail('test@example.com')).not.toThrow();
+    });
+
+    it('deve lançar erro se o email for inválido', () => {
+      expect(() => validateEmail('test@')).toThrow('Formato de e-mail inválido.');
+    });
+
+    it('deve lançar erro se o email não for fornecido', () => {
+      expect(() => validateEmail('')).toThrow('Formato de e-mail inválido.');
+    });
+  });
+
   describe('validatePassword', () => {
     it('deve passar quando a senha atende todos os requisitos', () => {
       expect(() => validatePassword('SenhaForte123')).not.toThrow();
@@ -112,6 +143,10 @@ describe('Validator Utils (validators.utils.js)', () => {
       } catch (error) {
         expect(error.message).toBe('A senha deve ter no mínimo 8 caracteres.');
       }
+    });
+
+    it('deve lançar erro se a senha não for fornecida', () => {
+      expect(() => validatePassword('')).toThrow('A senha deve ter no mínimo 8 caracteres.');
     });
 
     it('deve lançar erro 400 se não tiver letra maiúscula', () => {

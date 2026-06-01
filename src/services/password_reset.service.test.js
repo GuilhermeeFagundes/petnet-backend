@@ -5,6 +5,9 @@ import * as passwordResetRepository from '../repository/password_reset.repositor
 import * as emailService from './email.service.js';
 import { ResponseError } from '../errors/ResponseError.js';
 import bcrypt from 'bcrypt';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 jest.mock('../repository/user.repository.js');
 jest.mock('../repository/password_reset.repository.js');
@@ -18,7 +21,7 @@ describe('Password Reset Service (password_reset.service.js)', () => {
 
   describe('forgotPasswordService', () => {
     it('deve gerar token e enviar e-mail se o usuário existir', async () => {
-      userRepository.findUserByEmail.mockResolvedValue({ cpf: '12345678901' });
+      userRepository.findUserByEmail.mockResolvedValue({ cpf: TEST_CPF_1 });
       passwordResetRepository.createPasswordResetToken.mockResolvedValue();
       emailService.sendPasswordResetEmail.mockResolvedValue();
 
@@ -37,13 +40,13 @@ describe('Password Reset Service (password_reset.service.js)', () => {
 
   describe('resetPasswordService', () => {
     it('deve atualizar a senha se o token for válido', async () => {
-      passwordResetRepository.findValidResetToken.mockResolvedValue({ user_cpf: '12345678901', id: 1 });
+      passwordResetRepository.findValidResetToken.mockResolvedValue({ user_cpf: TEST_CPF_1, id: 1 });
       bcrypt.hash.mockResolvedValue('hashed');
       passwordResetRepository.resetPasswordTransaction.mockResolvedValue();
 
       await resetPasswordService('token_ok', 'NovaSenha123');
 
-      expect(passwordResetRepository.resetPasswordTransaction).toHaveBeenCalledWith('12345678901', 'hashed', 1);
+      expect(passwordResetRepository.resetPasswordTransaction).toHaveBeenCalledWith(TEST_CPF_1, 'hashed', 1);
     });
 
     it('deve lançar erro se o token for inválido', async () => {

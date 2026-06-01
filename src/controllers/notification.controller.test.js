@@ -1,6 +1,9 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import * as notificationController from './notification.controller.js';
 import * as notificationService from '../services/notification.service.js';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 jest.mock('../services/notification.service.js');
 
@@ -11,7 +14,7 @@ describe('Notification Controller (notification.controller.js)', () => {
         req = { 
             params: {}, 
             body: {}, 
-            user: { cpf: '12345678901' } 
+            user: { cpf: TEST_CPF_1 } 
         };
         res = {
             status: jest.fn().mockReturnThis(),
@@ -27,7 +30,7 @@ describe('Notification Controller (notification.controller.js)', () => {
 
             await notificationController.listNotificationsController(req, res);
 
-            expect(notificationService.listUnreadNotificationsService).toHaveBeenCalledWith('12345678901');
+            expect(notificationService.listUnreadNotificationsService).toHaveBeenCalledWith(TEST_CPF_1);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(mockNotifications);
         });
@@ -43,7 +46,7 @@ describe('Notification Controller (notification.controller.js)', () => {
 
             await notificationController.readNotificationController(req, res);
 
-            expect(notificationService.markAsReadService).toHaveBeenCalledWith('1', '12345678901');
+            expect(notificationService.markAsReadService).toHaveBeenCalledWith('1', TEST_CPF_1);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(mockNotification);
         });

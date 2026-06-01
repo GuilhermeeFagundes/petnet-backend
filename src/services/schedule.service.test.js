@@ -9,6 +9,9 @@ import {
 } from './schedule.service.js';
 import * as scheduleRepository from '../repository/schedule.repository.js';
 import { ResponseError } from '../errors/ResponseError.js';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 jest.mock('../repository/schedule.repository.js');
 
@@ -19,11 +22,11 @@ describe('Schedule Service (schedule.service.js)', () => {
 
   describe('listSchedulesService', () => {
     it('deve listar agendamentos com filtros de data e permissão de usuário', async () => {
-      const mockSchedules = [{ id: 1, client_cpf: '12345678901' }];
+      const mockSchedules = [{ id: 1, client_cpf: TEST_CPF_1 }];
       scheduleRepository.listSchedules.mockResolvedValue(mockSchedules);
 
       const query = { initial_date: '2023-01-01', final_date: '2023-01-31' };
-      const user = { type: 'CUSTOMER', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: TEST_CPF_1 };
 
       const result = await listSchedulesService(query, user);
 
@@ -42,12 +45,12 @@ describe('Schedule Service (schedule.service.js)', () => {
     });
 
     it('deve listar agendamentos filtrando pelo CPF do cliente', async () => {
-      const user = { type: 'CUSTOMER', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: TEST_CPF_1 };
       await listSchedulesService({}, user);
       expect(scheduleRepository.listSchedules).toHaveBeenCalledWith(
         expect.any(Date),
         expect.any(Date),
-        { client_cpf: '12345678901' }
+        { client_cpf: TEST_CPF_1 }
       );
     });
 
@@ -70,10 +73,10 @@ describe('Schedule Service (schedule.service.js)', () => {
 
   describe('findScheduleByIdService', () => {
     it('deve retornar o agendamento se o usuário tiver permissão', async () => {
-      const mockSchedule = { id: 1, client_cpf: '12345678901' };
+      const mockSchedule = { id: 1, client_cpf: TEST_CPF_1 };
       scheduleRepository.findScheduleById.mockResolvedValue(mockSchedule);
 
-      const user = { type: 'CUSTOMER', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: TEST_CPF_1 };
       const result = await findScheduleByIdService(1, user);
 
       expect(result.id).toBe(1);
@@ -83,7 +86,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       const mockSchedule = { id: 1, client_cpf: '45678901234' };
       scheduleRepository.findScheduleById.mockResolvedValue(mockSchedule);
 
-      const user = { type: 'CUSTOMER', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: TEST_CPF_1 };
       await expect(findScheduleByIdService(1, user)).rejects.toThrow(ResponseError);
     });
 
@@ -112,7 +115,7 @@ describe('Schedule Service (schedule.service.js)', () => {
 
   describe('createScheduleService', () => {
     it('deve criar um agendamento com sucesso', async () => {
-      const data = { client_cpf: '12345678901', pet_id: 1, collaborator_cpf: '45678901234', date_time: '2023-10-10' };
+      const data = { client_cpf: TEST_CPF_1, pet_id: 1, collaborator_cpf: '45678901234', date_time: '2023-10-10' };
       scheduleRepository.createSchedule.mockResolvedValue({ id: 1, ...data });
 
       const result = await createScheduleService(data);

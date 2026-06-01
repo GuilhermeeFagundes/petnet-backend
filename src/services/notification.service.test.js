@@ -7,6 +7,9 @@ import {
 import * as notificationRepository from '../repository/notification.repository.js';
 import * as userRepository from '../repository/user.repository.js';
 import { ResponseError } from '../errors/ResponseError.js';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 jest.mock('../repository/notification.repository.js');
 jest.mock('../repository/user.repository.js');
@@ -21,9 +24,9 @@ describe('Notification Service (notification.service.js)', () => {
             const mockNotifications = [{ id: 1, topic: 'Aviso', viewed: false }];
             notificationRepository.findUnreadNotificationsByCpf.mockResolvedValue(mockNotifications);
 
-            const result = await listUnreadNotificationsService('12345678901');
+            const result = await listUnreadNotificationsService(TEST_CPF_1);
 
-            expect(notificationRepository.findUnreadNotificationsByCpf).toHaveBeenCalledWith('12345678901');
+            expect(notificationRepository.findUnreadNotificationsByCpf).toHaveBeenCalledWith(TEST_CPF_1);
             expect(result).toEqual(mockNotifications);
         });
     });
@@ -31,15 +34,15 @@ describe('Notification Service (notification.service.js)', () => {
 
 
     describe('createNotificationService', () => {
-        const validData = { user_cpf: '12345678901', topic: 'Promoção', message: 'Desconto!' };
+        const validData = { user_cpf: TEST_CPF_1, topic: 'Promoção', message: 'Desconto!' };
 
         it('deve criar uma notificação com sucesso', async () => {
-            userRepository.findUserByCpf.mockResolvedValue({ cpf: '12345678901' });
+            userRepository.findUserByCpf.mockResolvedValue({ cpf: TEST_CPF_1 });
             notificationRepository.createNotification.mockResolvedValue({ id: 1, ...validData });
 
             const result = await createNotificationService(validData);
 
-            expect(userRepository.findUserByCpf).toHaveBeenCalledWith('12345678901');
+            expect(userRepository.findUserByCpf).toHaveBeenCalledWith(TEST_CPF_1);
             expect(notificationRepository.createNotification).toHaveBeenCalledWith(validData);
             expect(result.id).toBe(1);
         });
@@ -67,11 +70,11 @@ describe('Notification Service (notification.service.js)', () => {
 
     describe('markAsReadService', () => {
         it('deve marcar a notificação como lida se pertencer ao usuário', async () => {
-            const mockNotification = { id: 1, user_cpf: '12345678901', viewed: false };
+            const mockNotification = { id: 1, user_cpf: TEST_CPF_1, viewed: false };
             notificationRepository.findNotificationById.mockResolvedValue(mockNotification);
             notificationRepository.updateNotificationViewed.mockResolvedValue({ ...mockNotification, viewed: true });
 
-            const result = await markAsReadService(1, '12345678901');
+            const result = await markAsReadService(1, TEST_CPF_1);
 
             expect(notificationRepository.findNotificationById).toHaveBeenCalledWith(1);
             expect(notificationRepository.updateNotificationViewed).toHaveBeenCalledWith(1, true);
@@ -79,10 +82,10 @@ describe('Notification Service (notification.service.js)', () => {
         });
 
         it('deve retornar a notificação sem alterar se já estiver lida', async () => {
-            const mockNotification = { id: 1, user_cpf: '12345678901', viewed: true };
+            const mockNotification = { id: 1, user_cpf: TEST_CPF_1, viewed: true };
             notificationRepository.findNotificationById.mockResolvedValue(mockNotification);
 
-            const result = await markAsReadService(1, '12345678901');
+            const result = await markAsReadService(1, TEST_CPF_1);
 
             expect(notificationRepository.updateNotificationViewed).not.toHaveBeenCalled();
             expect(result.viewed).toBe(true);
@@ -90,14 +93,14 @@ describe('Notification Service (notification.service.js)', () => {
 
         it('deve lançar erro se a notificação não existir', async () => {
             notificationRepository.findNotificationById.mockResolvedValue(null);
-            await expect(markAsReadService(1, '12345678901')).rejects.toThrow('Notificação não encontrada.');
+            await expect(markAsReadService(1, TEST_CPF_1)).rejects.toThrow('Notificação não encontrada.');
         });
 
         it('deve lançar erro se a notificação não pertencer ao usuário', async () => {
             const mockNotification = { id: 1, user_cpf: '00000000000', viewed: false };
             notificationRepository.findNotificationById.mockResolvedValue(mockNotification);
             
-            await expect(markAsReadService(1, '12345678901')).rejects.toThrow('Sem permissão para acessar esta notificação.');
+            await expect(markAsReadService(1, TEST_CPF_1)).rejects.toThrow('Sem permissão para acessar esta notificação.');
         });
     });
 });

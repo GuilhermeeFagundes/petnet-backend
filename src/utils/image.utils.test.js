@@ -9,7 +9,7 @@ describe('Image Utils (image.utils.js)', () => {
     });
 
     it('deve converter uma string base64 simples para Buffer', () => {
-      const base64Str = 'SGVsbG8='; // 'Hello'
+      const base64Str = 'data:image/png;base64,SGVsbG8='; // 'Hello'
       const buffer = base64ToBuffer(base64Str);
       
       expect(buffer).toBeInstanceOf(Buffer);
@@ -22,6 +22,18 @@ describe('Image Utils (image.utils.js)', () => {
       
       expect(buffer).toBeInstanceOf(Buffer);
       expect(buffer.toString()).toBe('Hello');
+    });
+
+    it('deve lançar erro se o tipo MIME for inválido', () => {
+      const invalidBase64 = 'data:image/svg+xml;base64,PHN2Zz4=';
+      expect(() => base64ToBuffer(invalidBase64)).toThrow('Tipo de imagem não suportado. Use JPEG, PNG, WebP ou GIF.');
+    });
+
+    it('deve lançar erro se a imagem for maior que 5MB', () => {
+      // 5MB + 1 byte
+      const largeBuffer = Buffer.alloc(5 * 1024 * 1024 + 1);
+      const largeBase64 = `data:image/png;base64,${largeBuffer.toString('base64')}`;
+      expect(() => base64ToBuffer(largeBase64)).toThrow('Imagem muito grande. Limite máximo de 5MB.');
     });
   });
 
@@ -74,7 +86,7 @@ describe('Image Utils (image.utils.js)', () => {
     });
 
     it('deve converter a string base64 do campo informado para picture_blob e remover o campo original', () => {
-      const data = { name: 'Rex', petPicture: 'SGVsbG8=' };
+      const data = { name: 'Rex', petPicture: 'data:image/png;base64,SGVsbG8=' };
       const result = mapFieldToBlob(data, 'petPicture');
       
       expect(result.name).toBe('Rex');
