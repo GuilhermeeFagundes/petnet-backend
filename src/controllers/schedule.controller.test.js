@@ -10,6 +10,7 @@ import * as scheduleService from '../services/schedule.service.js';
 import { ResponseError } from '../errors/ResponseError.js';
 
 jest.mock('../services/schedule.service.js');
+jest.mock('../utils/log.utils.js');
 
 describe('Schedule Controller (schedule.controller.js)', () => {
   let req, res;
@@ -63,7 +64,7 @@ describe('Schedule Controller (schedule.controller.js)', () => {
 
       await createScheduleController(req, res);
 
-      expect(scheduleService.createScheduleService).toHaveBeenCalledWith(req.body);
+      expect(scheduleService.createScheduleService).toHaveBeenCalledWith(req.body, req.user);
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalled();
     });
@@ -83,7 +84,7 @@ describe('Schedule Controller (schedule.controller.js)', () => {
 
       await updateScheduleController(req, res);
 
-      expect(scheduleService.updateScheduleService).toHaveBeenCalledWith(1, req.body);
+      expect(scheduleService.updateScheduleService).toHaveBeenCalledWith(1, req.body, req.user);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalled();
     });
@@ -96,7 +97,7 @@ describe('Schedule Controller (schedule.controller.js)', () => {
 
       await deleteScheduleController(req, res);
 
-      expect(scheduleService.deleteScheduleService).toHaveBeenCalledWith(1);
+      expect(scheduleService.deleteScheduleService).toHaveBeenCalledWith(1, req.user);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ message: "Agendamento excluído com sucesso" });
     });

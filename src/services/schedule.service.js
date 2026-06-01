@@ -4,6 +4,7 @@ import { sanitizeData } from "../utils/sanitize.utils.js";
 import { ResponseError } from "../errors/ResponseError.js";
 import { validateAndConvertEnums } from "../utils/enum.utils.js";
 import { ScheduleEnums } from "../enums/schedule.enums.js";
+import { sendLog } from "../utils/log.utils.js";
 
 const ALLOWED_CREATE_FIELDS = ["client_cpf", "pet_id", "collaborator_cpf", "date_time", "duration", "status", "observation", "services"];
 const ALLOWED_UPDATE_FIELDS = ["date_time", "duration", "status", "collaborator_cpf", "observation", "services"];
@@ -44,7 +45,7 @@ export const findScheduleByIdService = async (id, user) => {
   return schedule;
 };
 
-export const createScheduleService = async (scheduleData) => {
+export const createScheduleService = async (scheduleData, user) => {
   const sanitized = sanitizeData(ALLOWED_CREATE_FIELDS, scheduleData);
 
   if (!sanitized) {
@@ -54,10 +55,17 @@ export const createScheduleService = async (scheduleData) => {
   const createData = validateAndConvertEnums(sanitized, ScheduleEnums);
   parseDateField(createData, 'date_time');
 
-  return await createSchedule(createData);
+  try {
+    const newSchedule = await createSchedule(createData);
+    await sendLog({ entity: 'schedule', action: 'create', status: 'success', responsible: user.cpf });
+    return newSchedule;
+  } catch (error) {
+    await sendLog({ entity: 'schedule', action: 'create', status: 'error', responsible: user.cpf, details: error.message });
+    throw error;
+  }
 };
 
-export const updateScheduleService = async (id, scheduleData) => {
+export const updateScheduleService = async (id, scheduleData, user) => {
   const sanitized = sanitizeData(ALLOWED_UPDATE_FIELDS, scheduleData);
 
   if (!sanitized) {
@@ -73,14 +81,27 @@ export const updateScheduleService = async (id, scheduleData) => {
 
   parseDateField(updateData, 'date_time');
 
-  return await updateSchedule(id, updateData);
+  try {
+    const updated = await updateSchedule(id, updateData);
+    await sendLog({ entity: 'schedule', action: 'update', status: 'success', responsible: user.cpf });
+    return updated;
+  } catch (error) {
+    await sendLog({ entity: 'schedule', action: 'update', status: 'error', responsible: user.cpf, details: error.message });
+    throw error;
+  }
 };
 
-export const deleteScheduleService = async (id) => {
+export const deleteScheduleService = async (id, user) => {
   const schedule = await findScheduleById(id);
   if (!schedule) {
     throw new ResponseError("Agendamento não encontrado", 404);
   }
 
-  return await deleteSchedule(id);
+  try {
+    await deleteSchedule(id);
+    await sendLog({ entity: 'schedule', action: 'delete', status: 'success', responsible: user.cpf });
+  } catch (error) {
+    await sendLog({ entity: 'schedule', action: 'delete', status: 'error', responsible: user.cpf, details: error.message });
+    throw error;
+  }
 };
