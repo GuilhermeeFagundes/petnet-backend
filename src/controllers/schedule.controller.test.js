@@ -4,7 +4,8 @@ import {
   findScheduleByIdController,
   createScheduleController,
   updateScheduleController,
-  deleteScheduleController
+  deleteScheduleController,
+  deliverScheduleController
 } from './schedule.controller.js';
 import * as scheduleService from '../services/schedule.service.js';
 import { ResponseError } from '../errors/ResponseError.js';
@@ -101,4 +102,19 @@ describe('Schedule Controller (schedule.controller.js)', () => {
       expect(res.json).toHaveBeenCalledWith({ message: "Agendamento excluído com sucesso" });
     });
   });
+
+  describe('deliverScheduleController', () => {
+    it('deve marcar o agendamento como entregue e retornar status 200', async () => {
+      req.params.id = '1';
+      const mockDeliveredSchedule = { id: 1, status: 'DELIVERED' };
+      scheduleService.deliverScheduleService.mockResolvedValue(mockDeliveredSchedule);
+
+      await deliverScheduleController(req, res);
+
+      expect(scheduleService.deliverScheduleService).toHaveBeenCalledWith(1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+    });
+  });
 });
+

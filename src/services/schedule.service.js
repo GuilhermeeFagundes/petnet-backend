@@ -84,3 +84,12 @@ export const deleteScheduleService = async (id) => {
 
   return await deleteSchedule(id);
 };
+
+export const deliverScheduleService = async (id) => {
+  const scheduleExists = await findScheduleById(id);
+  if (!scheduleExists) {
+    throw new ResponseError("Agendamento não encontrado", 404);
+  }
+
+  return await updateSchedule(id, { status: ScheduleEnums.find(e => e.key === 'status').values.DELIVERED });
+};

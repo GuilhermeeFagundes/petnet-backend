@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  createScheduleController, listSchedulesController, findScheduleByIdController, updateScheduleController, deleteScheduleController
+  createScheduleController, listSchedulesController, findScheduleByIdController, updateScheduleController, deleteScheduleController, deliverScheduleController
 } from '../controllers/schedule.controller.js';
 import { ensureAdmin, ensureAuthenticated } from '../middlewares/auth.middleware.js';
 
@@ -13,6 +13,7 @@ scheduleRouter.get('/:id', ensureAuthenticated, findScheduleByIdController);
 // ADMIN: Criar, atualizar ou deletar agendamentos
 scheduleRouter.post('/', ensureAdmin, createScheduleController);
 scheduleRouter.put('/:id', ensureAdmin, updateScheduleController);
+scheduleRouter.patch('/:id/deliver', ensureAdmin, deliverScheduleController);
 scheduleRouter.delete('/:id', ensureAdmin, deleteScheduleController);
 
 export default scheduleRouter;

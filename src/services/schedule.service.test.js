@@ -4,7 +4,8 @@ import {
   findScheduleByIdService,
   createScheduleService,
   updateScheduleService,
-  deleteScheduleService
+  deleteScheduleService,
+  deliverScheduleService
 } from './schedule.service.js';
 import * as scheduleRepository from '../repository/schedule.repository.js';
 import { ResponseError } from '../errors/ResponseError.js';
@@ -158,4 +159,22 @@ describe('Schedule Service (schedule.service.js)', () => {
       await expect(deleteScheduleService(1)).rejects.toThrow("Agendamento não encontrado");
     });
   });
+
+  describe('deliverScheduleService', () => {
+    it('deve atualizar o status do agendamento para DELIVERED se ele existir', async () => {
+      scheduleRepository.findScheduleById.mockResolvedValue({ id: 1 });
+      scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'DELIVERED' });
+
+      const result = await deliverScheduleService(1);
+
+      expect(scheduleRepository.updateSchedule).toHaveBeenCalledWith(1, { status: 'DELIVERED' });
+      expect(result.status).toBe('DELIVERED');
+    });
+
+    it('deve lançar erro se o agendamento não existir ao marcar como DELIVERED', async () => {
+      scheduleRepository.findScheduleById.mockResolvedValue(null);
+      await expect(deliverScheduleService(1)).rejects.toThrow("Agendamento não encontrado");
+    });
+  });
 });
+
