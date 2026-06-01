@@ -6,7 +6,7 @@ const LOG_API_TOKEN = process.env.LOG_API_TOKEN;
  * @param {object} data
  * @param {'user'|'pet'|'schedule'|'auth'} data.entity
  * @param {'create'|'update'|'delete'|'login'|'logout'|'register'} data.action
- * @param {'success'|'error'} data.status
+ * @param {'success'|'error'|'failed'} data.status
  * @param {string|null} data.responsible 
  * @param {string|null} data.details
  */
