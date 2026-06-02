@@ -4,6 +4,7 @@ import { sanitizeData } from "../utils/sanitize.utils.js";
 import { ResponseError } from "../errors/ResponseError.js";
 import { validateAndConvertEnums } from "../utils/enum.utils.js";
 import { ScheduleEnums } from "../enums/schedule.enums.js";
+import { notifyScheduleStatusChange } from "../utils/notification.utils.js";
 
 const ALLOWED_CREATE_FIELDS = ["client_cpf", "pet_id", "collaborator_cpf", "date_time", "duration", "status", "observation", "services"];
 const ALLOWED_UPDATE_FIELDS = ["date_time", "duration", "status", "collaborator_cpf", "observation", "services"];
@@ -54,7 +55,12 @@ export const createScheduleService = async (scheduleData) => {
   const createData = validateAndConvertEnums(sanitized, ScheduleEnums);
   parseDateField(createData, 'date_time');
 
-  return await createSchedule(createData);
+  const newSchedule = await createSchedule(createData);
+
+  // Status inicial sempre notifica
+  notifyScheduleStatusChange(newSchedule.id, newSchedule.status);
+
+  return newSchedule;
 };
 
 export const updateScheduleService = async (id, scheduleData) => {
@@ -73,7 +79,13 @@ export const updateScheduleService = async (id, scheduleData) => {
 
   parseDateField(updateData, 'date_time');
 
-  return await updateSchedule(id, updateData);
+  const updatedSchedule = await updateSchedule(id, updateData);
+
+  if (updateData.status && updateData.status !== scheduleExists.status) {
+    notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status);
+  }
+
+  return updatedSchedule;
 };
 
 export const deleteScheduleService = async (id) => {
@@ -91,5 +103,9 @@ export const deliverScheduleService = async (id) => {
     throw new ResponseError("Agendamento não encontrado", 404);
   }
 
-  return await updateSchedule(id, { status: ScheduleEnums.find(e => e.key === 'status').values.DELIVERED });
+  const updatedSchedule = await updateSchedule(id, { status: ScheduleEnums.find(e => e.key === 'status').values.DELIVERED });
+  
+  notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status);
+
+  return updatedSchedule;
 };

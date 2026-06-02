@@ -66,7 +66,7 @@ export const cleanCpf = (cpf) => {
             sum += parseInt(cpfStr[i]) * (length + 1 - i);
         }
         const rem = (sum * 10) % 11;
-        return rem === 10 || rem === 11 ? 0 : rem;
+        return rem === 10 ? 0 : rem;
     };
 
     if (

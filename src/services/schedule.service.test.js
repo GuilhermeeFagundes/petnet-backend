@@ -8,16 +8,22 @@ import {
   deliverScheduleService
 } from './schedule.service.js';
 import * as scheduleRepository from '../repository/schedule.repository.js';
+import * as userRepository from '../repository/user.repository.js';
+import { notifyScheduleStatusChange } from '../utils/notification.utils.js';
 import { ResponseError } from '../errors/ResponseError.js';
 import { generateCpf } from "../utils/test.utils.js";
 
 const TEST_CPF_1 = generateCpf();
 
 jest.mock('../repository/schedule.repository.js');
+jest.mock('../repository/user.repository.js');
+jest.mock('../utils/notification.utils.js');
 
 describe('Schedule Service (schedule.service.js)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    userRepository.findUsersByType.mockResolvedValue([{ cpf: 'admin_cpf' }]);
+    notifyScheduleStatusChange.mockResolvedValue(true);
   });
 
   describe('listSchedulesService', () => {
@@ -147,6 +153,15 @@ describe('Schedule Service (schedule.service.js)', () => {
 
     it('deve lançar erro se não houver dados válidos para atualizar', async () => {
       await expect(updateScheduleService(1, { invalid: 'data' })).rejects.toThrow("Nenhum dado válido enviado para atualização");
+    });
+
+    it('não deve enviar notificação se o status não foi alterado', async () => {
+      scheduleRepository.findScheduleById.mockResolvedValue({ id: 1, status: 'SCHEDULED', client_cpf: TEST_CPF_1 });
+      scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'SCHEDULED', observation: 'Nova obs', client_cpf: TEST_CPF_1 });
+
+      await updateScheduleService(1, { status: 'SCHEDULED', observation: 'Nova obs' });
+
+      expect(notifyScheduleStatusChange).not.toHaveBeenCalled();
     });
   });
 

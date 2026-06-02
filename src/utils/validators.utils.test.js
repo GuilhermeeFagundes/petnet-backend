@@ -96,6 +96,12 @@ describe('Validator Utils (validators.utils.js)', () => {
       expect(() => cleanCpf(invalidCpf)).toThrow('CPF inválido.');
     });
 
+    it('deve validar um CPF cujo resto do dígito verificador seja 10', () => {
+      // O CPF 10000000108 tem o cálculo do primeiro dígito resultando em resto 10 (que vira 0)
+      const validCpfRem10 = '10000000108';
+      expect(cleanCpf(validCpfRem10)).toBe(validCpfRem10);
+    });
+
     it('PROPRIEDADE: para qualquer CPF válido, a limpeza com ruído deve retornar apenas os 11 dígitos', () => {
       fc.assert(
         fc.property(
