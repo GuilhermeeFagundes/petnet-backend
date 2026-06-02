@@ -66,6 +66,19 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
 4. **Confirmar/Alterar**: `PUT /api/schedules/:id`
    - Mudar status para `CONFIRMED` ou `FINISHED`.
 5. **Cancelar**: `DELETE /api/schedules/:id` ou atualizar status para `CANCELED`.
+6. **Entregar Pet**: `PATCH /api/schedules/:id/deliver`
+   - Admin marcando que o pet foi entregue, disparando a notificação interna.
+
+### 7. Notificações Internas
+| Cenário | Método/Endpoint | Objetivo | Resultado Esperado |
+| :--- | :--- | :--- | :--- |
+| **Listar Não Lidas** | `GET /api/notifications` | Ver avisos do usuário | Retorna array de notificações (200). |
+| **Marcar como Lida** | `PUT /api/notifications/:id/read` | Tirar o aviso de destaque | Notificação atualizada (200). |
+
+### 8. Dashboard (Admin)
+| Cenário | Método/Endpoint | Objetivo | Resultado Esperado |
+| :--- | :--- | :--- | :--- |
+| **Métricas Gerais** | `GET /api/dashboard` | Visualizar indicadores | JSON com os agrupamentos Diario, Mensal e Anual (200). |
 
 ---
 
