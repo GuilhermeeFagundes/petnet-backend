@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
   createScheduleController, listSchedulesController, findScheduleByIdController, updateScheduleController, deleteScheduleController, deliverScheduleController
 } from '../controllers/schedule.controller.js';
-import { ensureAdmin, ensureAuthenticated } from '../middlewares/auth.middleware.js';
+import { ensureAdmin, ensureAdminOrCollaboratorOwner, ensureAuthenticated } from '../middlewares/auth.middleware.js';
 
 const scheduleRouter = Router();
 
@@ -12,8 +12,10 @@ scheduleRouter.get('/:id', ensureAuthenticated, findScheduleByIdController);
 
 // ADMIN: Criar, atualizar ou deletar agendamentos
 scheduleRouter.post('/', ensureAdmin, createScheduleController);
-scheduleRouter.put('/:id', ensureAdmin, updateScheduleController);
-scheduleRouter.patch('/:id/deliver', ensureAdmin, deliverScheduleController);
 scheduleRouter.delete('/:id', ensureAdmin, deleteScheduleController);
+
+// ATUALIZAÇÃO: admin ou colaborador dono do agendamento
+scheduleRouter.put('/:id', ensureAdminOrCollaboratorOwner, updateScheduleController);
+scheduleRouter.patch('/:id/deliver', ensureAdminOrCollaboratorOwner, deliverScheduleController);
 
 export default scheduleRouter;

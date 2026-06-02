@@ -1,6 +1,7 @@
 import { verifyToken } from '../utils/jwt.utils.js';
 import { isAdmin, isSelf, isCollaboratorOrAdmin } from '../utils/auth.utils.js';
 import { findPetOwner } from '../repository/pet.repository.js';
+import { findScheduleById } from '../repository/schedule.repository.js';
 import { ResponseError } from '../errors/ResponseError.js';
 
 /**
@@ -83,6 +84,32 @@ export const ensureAdminOrPetOwner = [
 
         if (pet.user_cpf !== req.user.cpf) {
             throw new ResponseError('Sem permissão para acessar este pet.', 403);
+        }
+
+        next();
+    },
+];
+
+
+ /*Admin acessa qualquer agendamento, Colaborador só acessa agendamentos dele e Customer não tem permissao*/
+ 
+export const ensureAdminOrCollaboratorOwner = [
+    ensureAuthenticated,
+    async (req, res, next) => {
+        if (isAdmin(req.user)) return next();
+
+        if (req.user.type !== 'COLLABORATOR') {
+            throw new ResponseError('Acesso restrito a colaboradores ou administradores.', 403);
+        }
+
+        const schedule = await findScheduleById(req.params.id);
+
+        if (!schedule) {
+            throw new ResponseError('Agendamento não encontrado.', 404);
+        }
+
+        if (schedule.collaborator_cpf !== req.user.cpf) {
+            throw new ResponseError('Sem permissão para acessar este agendamento.', 403);
         }
 
         next();

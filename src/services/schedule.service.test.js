@@ -143,7 +143,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       scheduleRepository.findScheduleById.mockResolvedValue({ id: 1 });
       scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'FINISHED' });
 
-     const result = await updateScheduleService(1, { status: 'FINISHED' }, mockUser);
+      const result = await updateScheduleService(1, { status: 'FINISHED' }, mockUser);
 
       expect(scheduleRepository.updateSchedule).toHaveBeenCalled();
       expect(result.status).toBe('FINISHED');
@@ -155,16 +155,44 @@ describe('Schedule Service (schedule.service.js)', () => {
     });
 
     it('deve lançar erro se não houver dados válidos para atualizar', async () => {
-      await expect(updateScheduleService(1, { invalid: 'data' })).rejects.toThrow("Nenhum dado válido enviado para atualização");
+      await expect(updateScheduleService(1, { invalid: 'data' }, mockUser)).rejects.toThrow("Nenhum dado válido enviado para atualização");
     });
 
     it('não deve enviar notificação se o status não foi alterado', async () => {
       scheduleRepository.findScheduleById.mockResolvedValue({ id: 1, status: 'SCHEDULED', client_cpf: TEST_CPF_1 });
       scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'SCHEDULED', observation: 'Nova obs', client_cpf: TEST_CPF_1 });
 
-      await updateScheduleService(1, { status: 'SCHEDULED', observation: 'Nova obs' });
-
+      await updateScheduleService(1, { status: 'SCHEDULED', observation: 'Nova obs' },
+        mockUser
+      );
       expect(notifyScheduleStatusChange).not.toHaveBeenCalled();
+    });
+
+    it('deve permitir colaborador atualizar para status permitido', async () => {
+      const collaborator = { cpf: '45678901234', type: 'COLLABORATOR' };
+      scheduleRepository.findScheduleById.mockResolvedValue({ id: 1, status: 'SCHEDULED' });
+      scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'FINISHED' });
+
+      const result = await updateScheduleService(1, { status: 'FINISHED' }, collaborator);
+
+      expect(scheduleRepository.updateSchedule).toHaveBeenCalled();
+      expect(result.status).toBe('FINISHED');
+    });
+
+    it('deve lançar erro 403 se colaborador tentar definir status não permitido', async () => {
+      const collaborator = { cpf: '45678901234', type: 'COLLABORATOR' };
+
+      await expect(
+        updateScheduleService(1, { status: 'CANCELED' }, collaborator)
+      ).rejects.toThrow(ResponseError);
+    });
+
+    it('deve lançar erro 400 se colaborador enviar campo não permitido', async () => {
+      const collaborator = { cpf: '45678901234', type: 'COLLABORATOR' };
+
+      await expect(
+        updateScheduleService(1, { observation: 'qualquer' }, collaborator)
+      ).rejects.toThrow("Nenhum dado válido enviado para atualização");
     });
   });
 

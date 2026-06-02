@@ -8,7 +8,9 @@ import { sendLog } from "../utils/log.utils.js";
 import { notifyScheduleStatusChange } from "../utils/notification.utils.js";
 
 const ALLOWED_CREATE_FIELDS = ["client_cpf", "pet_id", "collaborator_cpf", "date_time", "duration", "status", "observation", "services"];
-const ALLOWED_UPDATE_FIELDS = ["date_time", "duration", "status", "collaborator_cpf", "observation", "services"];
+const ALLOWED_UPDATE_FIELDS_ADMIN = ["date_time", "duration", "status", "collaborator_cpf", "observation", "services"];
+const ALLOWED_UPDATE_FIELDS_COLLABORATOR = ["status"];
+const COLLABORATOR_ALLOWED_STATUSES = ["FINISHED", "CONFIRMED"];
 const ALLOWED_QUERY_FIELDS = ["initial_date", "final_date"];
 
 export const listSchedulesService = async (queryData, user) => {
@@ -66,13 +68,29 @@ export const createScheduleService = async (scheduleData, user) => {
 };
 
 export const updateScheduleService = async (id, scheduleData, user) => {
-  const sanitized = sanitizeData(ALLOWED_UPDATE_FIELDS, scheduleData);
+  let allowedFields;
+  if (user?.type === 'COLLABORATOR') {
+    allowedFields = ALLOWED_UPDATE_FIELDS_COLLABORATOR;
+  } else {
+    allowedFields = ALLOWED_UPDATE_FIELDS_ADMIN;
+  }
+
+  const sanitized = sanitizeData(allowedFields, scheduleData);
 
   if (!sanitized) {
     throw new ResponseError("Nenhum dado válido enviado para atualização", 400);
   }
 
   const updateData = validateAndConvertEnums(sanitized, ScheduleEnums);
+
+  if (user?.type === 'COLLABORATOR' && updateData.status) {
+    if (!COLLABORATOR_ALLOWED_STATUSES.includes(updateData.status)) {
+      throw new ResponseError(
+        `Colaborador só pode definir os status: ${COLLABORATOR_ALLOWED_STATUSES.join(', ')}.`,
+        403
+      );
+    }
+  }
 
   const scheduleExists = await findScheduleById(id);
   if (!scheduleExists) {
