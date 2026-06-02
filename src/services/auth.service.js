@@ -44,25 +44,20 @@ export const registerService = async (fullData) => {
 
     userData.password = await bcrypt.hash(userData.password, 10);
 
-    try {
-        const newUser = await createUser(userData, addressData, contactData);
-        await sendLog({ entity: 'auth', action: 'register', status: 'success', responsible: newUser.cpf });
+    const newUser = await createUser(userData, addressData, contactData);
+    await sendLog({ entity: 'auth', action: 'register', status: 'success', responsible: newUser.cpf });
 
-        const returnUser = {
-            cpf: newUser.cpf,
-            name: newUser.name,
-            type: newUser.type,
-            email: newUser.email,
-            address: addressData,
-            contact: contactData,
-        };
+    const returnUser = {
+        cpf: newUser.cpf,
+        name: newUser.name,
+        type: newUser.type,
+        email: newUser.email,
+        address: addressData,
+        contact: contactData,
+    };
 
-        const token = generateToken({ cpf: newUser.cpf, type: newUser.type });
-        return { token, user: translateEnums(returnUser, UserEnums) };
-    } catch (error) {
-        await sendLog({ entity: 'auth', action: 'register', status: 'error', responsible: userData.cpf, details: error.message });
-        throw error;
-    }
+    const token = generateToken({ cpf: newUser.cpf, type: newUser.type });
+    return { token, user: translateEnums(returnUser, UserEnums) };
 };
 
 /**
@@ -77,7 +72,7 @@ export const registerService = async (fullData) => {
 export const loginService = async (email, password) => {
     const user = await findUserByEmailForAuth(email);
 
-     if (!user) {
+    if (!user) {
         await sendLog({ entity: 'auth', action: 'login', status: 'failed', details: 'Usuário não encontrado' });
         throw new ResponseError('Credenciais inválidas.', 401);
     }
@@ -88,12 +83,8 @@ export const loginService = async (email, password) => {
         throw new ResponseError('Credenciais inválidas.', 401);
     }
 
-    try {
-        const token = generateToken({ cpf: user.cpf, type: user.type });
-        await sendLog({ entity: 'auth', action: 'login', status: 'success', responsible: user.cpf });
-        return { token, user: translateEnums({ cpf: user.cpf, name: user.name, type: user.type }, UserEnums) };
-    } catch (error) {
-        await sendLog({ entity: 'auth', action: 'login', status: 'error', responsible: user.cpf, details: error.message });
-        throw error;
-    }
+
+    const token = generateToken({ cpf: user.cpf, type: user.type });
+    await sendLog({ entity: 'auth', action: 'login', status: 'success', responsible: user.cpf });
+    return { token, user: translateEnums({ cpf: user.cpf, name: user.name, type: user.type }, UserEnums) };
 };

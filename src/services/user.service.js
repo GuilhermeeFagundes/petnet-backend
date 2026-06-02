@@ -66,14 +66,9 @@ export const createUserService = async (fullData) => {
 
     userData.password = await bcrypt.hash(userData.password, 10);
 
-     try {
-        const newUser = await createUser(userData, addressData, contactData);
-        await sendLog({ entity: 'user', action: 'create', status: 'success', responsible: newUser.cpf });
-        return translateEnums(newUser, UserEnums);
-    } catch (error) {
-        await sendLog({ entity: 'user', action: 'create', status: 'error', responsible: userData.cpf, details: error.message });
-        throw error;
-    }
+    const newUser = await createUser(userData, addressData, contactData);
+    await sendLog({ entity: 'user', action: 'create', status: 'success', responsible: newUser.cpf });
+    return translateEnums(newUser, UserEnums);
 };
 
 export const updateUserService = async (userCPF, fullData) => {
@@ -109,14 +104,10 @@ export const updateUserService = async (userCPF, fullData) => {
         userData.password = await bcrypt.hash(userData.password, 10);
     }
 
-    try {
-        const updatedUser = await updateUser(cpf, userData, addressData, contactData);
-        await sendLog({ entity: 'user', action: 'update', status: 'success', responsible: cpf });
-        return translateEnums(updatedUser, UserEnums);
-    } catch (error) {
-        await sendLog({ entity: 'user', action: 'update', status: 'error', responsible: cpf, details: error.message });
-        throw error;
-    }
+
+    const updatedUser = await updateUser(cpf, userData, addressData, contactData);
+    await sendLog({ entity: 'user', action: 'update', status: 'success', responsible: cpf });
+    return translateEnums(updatedUser, UserEnums);
 };
 
 export const deleteUserService = async (userCPF) => {
@@ -127,14 +118,9 @@ export const deleteUserService = async (userCPF) => {
         throw new ResponseError("Usuário não cadastrado no sistema.", 404);
     }
 
-    try {
-        const result = await deleteUser(cpf);
-        await sendLog({ entity: 'user', action: 'delete', status: 'success', responsible: cpf });
-        return result;
-    } catch (error) {
-        await sendLog({ entity: 'user', action: 'delete', status: 'error', responsible: cpf, details: error.message });
-        throw error;
-    }
+    const result = await deleteUser(cpf);
+    await sendLog({ entity: 'user', action: 'delete', status: 'success', responsible: cpf });
+    return result;
 };
 
 export const reactivateUserService = async (userCPF) => {

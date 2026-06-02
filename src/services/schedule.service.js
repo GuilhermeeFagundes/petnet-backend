@@ -55,14 +55,9 @@ export const createScheduleService = async (scheduleData, user) => {
   const createData = validateAndConvertEnums(sanitized, ScheduleEnums);
   parseDateField(createData, 'date_time');
 
-  try {
-    const newSchedule = await createSchedule(createData);
-    await sendLog({ entity: 'schedule', action: 'create', status: 'success', responsible: user.cpf });
-    return newSchedule;
-  } catch (error) {
-    await sendLog({ entity: 'schedule', action: 'create', status: 'error', responsible: user.cpf, details: error.message });
-    throw error;
-  }
+  const newSchedule = await createSchedule(createData);
+  await sendLog({ entity: 'schedule', action: 'create', status: 'success', responsible: user.cpf });
+  return newSchedule;
 };
 
 export const updateScheduleService = async (id, scheduleData, user) => {
@@ -81,14 +76,10 @@ export const updateScheduleService = async (id, scheduleData, user) => {
 
   parseDateField(updateData, 'date_time');
 
-  try {
-    const updated = await updateSchedule(id, updateData);
-    await sendLog({ entity: 'schedule', action: 'update', status: 'success', responsible: user.cpf });
-    return updated;
-  } catch (error) {
-    await sendLog({ entity: 'schedule', action: 'update', status: 'error', responsible: user.cpf, details: error.message });
-    throw error;
-  }
+
+  const updated = await updateSchedule(id, updateData);
+  await sendLog({ entity: 'schedule', action: 'update', status: 'success', responsible: user.cpf });
+  return updated;
 };
 
 export const deleteScheduleService = async (id, user) => {
@@ -97,11 +88,6 @@ export const deleteScheduleService = async (id, user) => {
     throw new ResponseError("Agendamento não encontrado", 404);
   }
 
-  try {
-    await deleteSchedule(id);
-    await sendLog({ entity: 'schedule', action: 'delete', status: 'success', responsible: user.cpf });
-  } catch (error) {
-    await sendLog({ entity: 'schedule', action: 'delete', status: 'error', responsible: user.cpf, details: error.message });
-    throw error;
-  }
+  await deleteSchedule(id);
+  await sendLog({ entity: 'schedule', action: 'delete', status: 'success', responsible: user.cpf });
 };
