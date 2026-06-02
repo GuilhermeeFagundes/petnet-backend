@@ -7,6 +7,7 @@ import { validatePassword, cleanCpf } from '../utils/validators.utils.js';
 import { ResponseError } from '../errors/ResponseError.js';
 import { validateAndConvertEnums, translateEnums } from '../utils/enum.utils.js';
 import { UserEnums } from '../enums/user.enums.js';
+import { sendLog } from '../utils/log.utils.js';
 
 /**
  * Registra um novo usuário e retorna o token JWT.
@@ -44,6 +45,7 @@ export const registerService = async (fullData) => {
     userData.password = await bcrypt.hash(userData.password, 10);
 
     const newUser = await createUser(userData, addressData, contactData);
+    await sendLog({ entity: 'auth', action: 'register', status: 'success', responsible: newUser.cpf });
 
     const returnUser = {
         cpf: newUser.cpf,
@@ -70,11 +72,19 @@ export const registerService = async (fullData) => {
 export const loginService = async (email, password) => {
     const user = await findUserByEmailForAuth(email);
 
-    if (!user) throw new ResponseError('Credenciais inválidas.', 401);
+    if (!user) {
+        await sendLog({ entity: 'auth', action: 'login', status: 'failed', details: 'Usuário não encontrado' });
+        throw new ResponseError('Credenciais inválidas.', 401);
+    }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) throw new ResponseError('Credenciais inválidas.', 401);
+    if (!passwordMatch) {
+        await sendLog({ entity: 'auth', action: 'login', status: 'failed', responsible: user.cpf, details: 'Senha incorreta' });
+        throw new ResponseError('Credenciais inválidas.', 401);
+    }
+
 
     const token = generateToken({ cpf: user.cpf, type: user.type });
+    await sendLog({ entity: 'auth', action: 'login', status: 'success', responsible: user.cpf });
     return { token, user: translateEnums({ cpf: user.cpf, name: user.name, type: user.type }, UserEnums) };
 };

@@ -13,6 +13,7 @@ jest.mock('../repository/user.repository.js');
 jest.mock('../repository/auth.repository.js');
 jest.mock('../utils/jwt.utils.js');
 jest.mock('bcrypt');
+jest.mock('../utils/log.utils.js');
 
 describe('Auth Service (auth.service.js)', () => {
   beforeEach(() => {

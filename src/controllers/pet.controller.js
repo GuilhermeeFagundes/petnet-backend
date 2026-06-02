@@ -20,18 +20,18 @@ export const findPetByIdController = async (req, res) => {
 export const createPetController = async (req, res) => {
     requireFields(req.body, ['user_cpf', 'name', 'species', 'size']);
 
-    const newPet = await createPetService(req.body);
+    const newPet = await createPetService(req.body, req.user);
     return res.status(201).json(newPet);
 };
 
 export const updatePetController = async (req, res) => {
     const id = parseId(req.params.id, 'ID do pet');
-    const updatedPet = await updatePetService(id, req.body);
+    const updatedPet = await updatePetService(id, req.body, req.user);
     return res.status(200).json(updatedPet);
 };
 
 export const deletePetController = async (req, res) => {
     const id = parseId(req.params.id, 'ID do pet');
-    await deletePetService(id);
+    await deletePetService(id, req.user);
     return res.status(200).json({ message: "Pet excluído com sucesso" });
 };

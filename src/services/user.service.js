@@ -15,6 +15,8 @@ import {
     reactivateUser
 } from '../repository/user.repository.js';
 
+import { sendLog } from "../utils/log.utils.js";
+
 const ALLOWED_USER_FIELDS = ["cpf", "email", "name", "password", "type", "picture_blob"];
 const ALLOWED_ADDRESS_FIELDS = ["type", "cep", "locaticion", "neighborhood", "address", "number", "complement"];
 const ALLOWED_CONTACT_FIELDS = ["number", "name"];
@@ -65,6 +67,7 @@ export const createUserService = async (fullData) => {
     userData.password = await bcrypt.hash(userData.password, 10);
 
     const newUser = await createUser(userData, addressData, contactData);
+    await sendLog({ entity: 'user', action: 'create', status: 'success', responsible: newUser.cpf });
     return translateEnums(newUser, UserEnums);
 };
 
@@ -107,7 +110,9 @@ export const updateUserService = async (userCPF, fullData) => {
         userData.password = await bcrypt.hash(userData.password, 10);
     }
 
+
     const updatedUser = await updateUser(cpf, userData, addressData, contactData);
+    await sendLog({ entity: 'user', action: 'update', status: 'success', responsible: cpf });
     return translateEnums(updatedUser, UserEnums);
 };
 
@@ -119,7 +124,9 @@ export const deleteUserService = async (userCPF) => {
         throw new ResponseError("Usuário não cadastrado no sistema.", 404);
     }
 
-    return await deleteUser(cpf);
+    const result = await deleteUser(cpf);
+    await sendLog({ entity: 'user', action: 'delete', status: 'success', responsible: cpf });
+    return result;
 };
 
 export const reactivateUserService = async (userCPF) => {

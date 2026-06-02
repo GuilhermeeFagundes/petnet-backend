@@ -17,6 +17,7 @@ const TEST_CPF_2 = generateCpf();
 
 jest.mock('../repository/user.repository.js');
 jest.mock('bcrypt');
+jest.mock('../utils/log.utils.js');
 
 describe('User Service (user.service.js)', () => {
   beforeEach(() => {

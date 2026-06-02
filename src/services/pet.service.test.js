@@ -15,11 +15,14 @@ const TEST_CPF_1 = generateCpf();
 const TEST_CPF_2 = generateCpf();
 
 jest.mock('../repository/pet.repository.js');
+jest.mock('../utils/log.utils.js');
 
 describe('Pet Service (pet.service.js)', () => {
+  let mockUser;
   beforeEach(() => {
     jest.clearAllMocks();
-  });
+    mockUser = { cpf: '12345678901', type: 'MANAGER' };
+});
 
   describe('listPetsService', () => {
     it('deve listar todos os pets', async () => {
@@ -67,7 +70,7 @@ describe('Pet Service (pet.service.js)', () => {
       const petData = { user_cpf: TEST_CPF_1, name: 'Rex', species: 'Cachorro' };
       petRepository.createPet.mockResolvedValue({ id: 1, ...petData });
 
-      const result = await createPetService(petData);
+      const result = await createPetService(petData, mockUser);
 
       expect(petRepository.createPet).toHaveBeenCalled();
       expect(result.id).toBe(1);
@@ -83,7 +86,7 @@ describe('Pet Service (pet.service.js)', () => {
       petRepository.findPetById.mockResolvedValue({ id: 1 });
       petRepository.updatePet.mockResolvedValue({ id: 1, name: 'Novo' });
 
-      const result = await updatePetService(1, { name: 'Novo' });
+      const result = await updatePetService(1, { name: 'Novo' }, mockUser);
 
       expect(petRepository.updatePet).toHaveBeenCalled();
       expect(result.name).toBe('Novo');
@@ -91,24 +94,24 @@ describe('Pet Service (pet.service.js)', () => {
 
     it('deve lançar erro se o pet não existir', async () => {
       petRepository.findPetById.mockResolvedValue(null);
-      await expect(updatePetService(1, { name: 'Novo' })).rejects.toThrow('Pet não encontrado');
+      await expect(updatePetService(1, { name: 'Novo' }, mockUser)).rejects.toThrow('Pet não encontrado');
     });
 
     it('deve lançar erro se não houver campos válidos para atualização', async () => {
-      await expect(updatePetService(1, { invalid_field: 'val' })).rejects.toThrow('Nenhum campo válido enviado para atualização');
+      await expect(updatePetService(1, { invalid_field: 'val' }, mockUser)).rejects.toThrow('Nenhum campo válido enviado para atualização');
     });
   });
 
   describe('deletePetService', () => {
     it('deve excluir o pet se ele existir', async () => {
       petRepository.findPetById.mockResolvedValue({ id: 1 });
-      await deletePetService(1);
+      await deletePetService(1, mockUser);
       expect(petRepository.deletePet).toHaveBeenCalledWith(1);
     });
 
     it('deve lançar erro se o pet não existir ao tentar excluir', async () => {
       petRepository.findPetById.mockResolvedValue(null);
-      await expect(deletePetService(1)).rejects.toThrow('Pet não encontrado');
+      await expect(deletePetService(1, mockUser)).rejects.toThrow('Pet não encontrado');
     });
   });
 });

@@ -16,12 +16,15 @@ import { generateCpf } from "../utils/test.utils.js";
 const TEST_CPF_1 = generateCpf();
 
 jest.mock('../repository/schedule.repository.js');
+jest.mock('../utils/log.utils.js');
 jest.mock('../repository/user.repository.js');
 jest.mock('../utils/notification.utils.js');
 
 describe('Schedule Service (schedule.service.js)', () => {
+  let mockUser;
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUser = { cpf: '12345678901', type: 'MANAGER' };
     userRepository.findUsersByType.mockResolvedValue([{ cpf: 'admin_cpf' }]);
     notifyScheduleStatusChange.mockResolvedValue(true);
   });
@@ -124,7 +127,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       const data = { client_cpf: TEST_CPF_1, pet_id: 1, collaborator_cpf: '45678901234', date_time: '2023-10-10' };
       scheduleRepository.createSchedule.mockResolvedValue({ id: 1, ...data });
 
-      const result = await createScheduleService(data);
+      const result = await createScheduleService(data, mockUser);
 
       expect(scheduleRepository.createSchedule).toHaveBeenCalled();
       expect(result.id).toBe(1);
@@ -140,7 +143,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       scheduleRepository.findScheduleById.mockResolvedValue({ id: 1 });
       scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'FINISHED' });
 
-      const result = await updateScheduleService(1, { status: 'FINISHED' });
+     const result = await updateScheduleService(1, { status: 'FINISHED' }, mockUser);
 
       expect(scheduleRepository.updateSchedule).toHaveBeenCalled();
       expect(result.status).toBe('FINISHED');
@@ -148,7 +151,7 @@ describe('Schedule Service (schedule.service.js)', () => {
 
     it('deve lançar erro se o agendamento não existir ao atualizar', async () => {
       scheduleRepository.findScheduleById.mockResolvedValue(null);
-      await expect(updateScheduleService(1, { status: 'FINISHED' })).rejects.toThrow("Agendamento não encontrado");
+      await expect(updateScheduleService(1, { status: 'FINISHED' }, mockUser)).rejects.toThrow("Agendamento não encontrado");
     });
 
     it('deve lançar erro se não houver dados válidos para atualizar', async () => {
@@ -168,13 +171,13 @@ describe('Schedule Service (schedule.service.js)', () => {
   describe('deleteScheduleService', () => {
     it('deve excluir o agendamento se ele existir', async () => {
       scheduleRepository.findScheduleById.mockResolvedValue({ id: 1 });
-      await deleteScheduleService(1);
+      await deleteScheduleService(1, mockUser);
       expect(scheduleRepository.deleteSchedule).toHaveBeenCalledWith(1);
     });
 
     it('deve lançar erro se o agendamento não existir ao excluir', async () => {
       scheduleRepository.findScheduleById.mockResolvedValue(null);
-      await expect(deleteScheduleService(1)).rejects.toThrow("Agendamento não encontrado");
+      await expect(deleteScheduleService(1, mockUser)).rejects.toThrow("Agendamento não encontrado");
     });
   });
 
