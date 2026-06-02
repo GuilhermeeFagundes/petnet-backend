@@ -1,6 +1,9 @@
 import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals';
 import { sendPasswordResetEmail } from './email.service.js';
 import { Resend } from 'resend';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 jest.mock('resend');
 
@@ -12,7 +15,7 @@ describe('Email Service (email.service.js)', () => {
     process.env = { ...originalEnv, RESEND_API_KEY: 'test_key', RESEND_FROM_EMAIL: 'test@test.com' };
     
     // Mock the chainable resend client
-    const sendMock = jest.fn().mockResolvedValue({ id: '12345678901' });
+    const sendMock = jest.fn().mockResolvedValue({ id: TEST_CPF_1 });
     Resend.prototype.emails = { send: sendMock };
   });
 

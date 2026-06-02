@@ -6,7 +6,7 @@ import {
     deleteUserService,
     reactivateUserService,
 } from "../services/user.service.js";
-import { requireFields } from "../utils/validators.utils.js";
+import { requireFields, validateEmail } from "../utils/validators.utils.js";
 
 export const listUsersController = async (req, res) => {
     const users = await listUsersService();
@@ -20,12 +20,16 @@ export const showUserController = async (req, res) => {
 
 export const createUserController = async (req, res) => {
     requireFields(req.body, ['cpf', 'email', 'name', 'password']);
+    validateEmail(req.body.email);
 
     const newUser = await createUserService(req.body);
     return res.status(201).json(newUser);
 };
 
 export const updateUserController = async (req, res) => {
+    if (req.body.email) {
+        validateEmail(req.body.email);
+    }
     const updatedUser = await updateUserService(req.params.user_cpf, req.body);
     return res.status(200).json(updatedUser);
 };

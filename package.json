@@ -9,7 +9,8 @@
     "dev": "nodemon src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
-    "test": "npx jest --watchAll"
+    "test": "npx jest",
+    "test:watch": "npx jest --watchAll"
   },
   "repository": {
     "type": "git",
@@ -31,8 +32,15 @@
     "dotenv": "^17.3.1",
     "express": "^5.1.0",
     "express-rate-limit": "^8.5.1",
+    "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "resend": "^6.12.3"
+  },
+  "overrides": {
+    "path-to-regexp": ">=8.4.0",
+    "brace-expansion": ">=1.1.13",
+    "picomatch": ">=2.3.2",
+    "qs": ">=6.15.2"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

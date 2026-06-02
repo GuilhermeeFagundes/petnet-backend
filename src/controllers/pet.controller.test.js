@@ -2,6 +2,9 @@ import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals'
 import * as petController from './pet.controller.js';
 import * as petService from '../services/pet.service.js';
 import { ResponseError } from '../errors/ResponseError.js';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 jest.mock('../services/pet.service.js');
 jest.mock('../utils/log.utils.js');
@@ -59,7 +62,7 @@ describe('Pet Controller (pet.controller.js)', () => {
 
   describe('createPetController', () => {
     it('deve criar um pet com campos obrigatórios e retornar 201', async () => {
-      req.body = { user_cpf: '12345678901', name: 'Rex', species: 'dog', size: 'M' };
+      req.body = { user_cpf: TEST_CPF_1, name: 'Rex', species: 'dog', size: 'M' };
       const mockPet = { id: 1, ...req.body };
       petService.createPetService.mockResolvedValue(mockPet);
 

@@ -9,6 +9,10 @@ import {
 } from './pet.service.js';
 import * as petRepository from '../repository/pet.repository.js';
 import { ResponseError } from '../errors/ResponseError.js';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
+const TEST_CPF_2 = generateCpf();
 
 jest.mock('../repository/pet.repository.js');
 jest.mock('../utils/log.utils.js');
@@ -37,9 +41,9 @@ describe('Pet Service (pet.service.js)', () => {
       const mockPets = [{ id: 1, name: 'Rex' }];
       petRepository.findPetsByUserCpf.mockResolvedValue(mockPets);
 
-      const result = await findPetsByUserService('12345678900');
+      const result = await findPetsByUserService(TEST_CPF_2);
 
-      expect(petRepository.findPetsByUserCpf).toHaveBeenCalledWith('12345678900');
+      expect(petRepository.findPetsByUserCpf).toHaveBeenCalledWith(TEST_CPF_2);
       expect(result).toHaveLength(1);
     });
   });
@@ -63,7 +67,7 @@ describe('Pet Service (pet.service.js)', () => {
 
   describe('createPetService', () => {
     it('deve criar um pet com sucesso', async () => {
-      const petData = { user_cpf: '12345678901', name: 'Rex', species: 'Cachorro' };
+      const petData = { user_cpf: TEST_CPF_1, name: 'Rex', species: 'Cachorro' };
       petRepository.createPet.mockResolvedValue({ id: 1, ...petData });
 
       const result = await createPetService(petData, mockUser);

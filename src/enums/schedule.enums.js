@@ -13,6 +13,7 @@ export const ScheduleStatus = {
   CONFIRMED: "CONFIRMED",
   CANCELED: "CANCELED",
   FINISHED: "FINISHED",
+  DELIVERED: "DELIVERED",
 };
 
 export const ScheduleDurationMetadata = {
@@ -39,6 +40,7 @@ export const ScheduleStatusMetadata = {
     [ScheduleStatus.CONFIRMED]: "Confirmado",
     [ScheduleStatus.CANCELED]: "Cancelado",
     [ScheduleStatus.FINISHED]: "Finalizado",
+    [ScheduleStatus.DELIVERED]: "Entregue",
   }
 };
 

@@ -20,6 +20,13 @@ export const findUserByEmail = async (userEmail) => {
     });
 }
 
+// Encontrar usuários por tipo (ex: ADMIN, CUSTOMER, COLLABORATOR)
+export const findUsersByType = async (userType) => {
+    return await prisma.user.findMany({
+        where: { type: userType, excluded_at: null },
+    });
+}
+
 // Encontrar usuário por CPF
 export const findUserByCpf = async (userCPF) => {
     return await prisma.user.findUnique({

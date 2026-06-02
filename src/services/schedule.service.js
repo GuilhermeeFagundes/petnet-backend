@@ -5,6 +5,7 @@ import { ResponseError } from "../errors/ResponseError.js";
 import { validateAndConvertEnums } from "../utils/enum.utils.js";
 import { ScheduleEnums } from "../enums/schedule.enums.js";
 import { sendLog } from "../utils/log.utils.js";
+import { notifyScheduleStatusChange } from "../utils/notification.utils.js";
 
 const ALLOWED_CREATE_FIELDS = ["client_cpf", "pet_id", "collaborator_cpf", "date_time", "duration", "status", "observation", "services"];
 const ALLOWED_UPDATE_FIELDS = ["date_time", "duration", "status", "collaborator_cpf", "observation", "services"];
@@ -57,6 +58,10 @@ export const createScheduleService = async (scheduleData, user) => {
 
   const newSchedule = await createSchedule(createData);
   await sendLog({ entity: 'schedule', action: 'create', status: 'success', responsible: user.cpf });
+
+  // Status inicial sempre notifica
+  notifyScheduleStatusChange(newSchedule.id, newSchedule.status);
+
   return newSchedule;
 };
 
@@ -77,9 +82,16 @@ export const updateScheduleService = async (id, scheduleData, user) => {
   parseDateField(updateData, 'date_time');
 
 
-  const updated = await updateSchedule(id, updateData);
+  const updatedSchedule = await updateSchedule(id, updateData);
   await sendLog({ entity: 'schedule', action: 'update', status: 'success', responsible: user.cpf });
-  return updated;
+
+
+
+  if (updateData.status && updateData.status !== scheduleExists.status) {
+    notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status);
+  }
+
+  return updatedSchedule;
 };
 
 export const deleteScheduleService = async (id, user) => {
@@ -90,4 +102,17 @@ export const deleteScheduleService = async (id, user) => {
 
   await deleteSchedule(id);
   await sendLog({ entity: 'schedule', action: 'delete', status: 'success', responsible: user.cpf });
+};
+
+export const deliverScheduleService = async (id) => {
+  const scheduleExists = await findScheduleById(id);
+  if (!scheduleExists) {
+    throw new ResponseError("Agendamento não encontrado", 404);
+  }
+
+  const updatedSchedule = await updateSchedule(id, { status: ScheduleEnums.find(e => e.key === 'status').values.DELIVERED });
+
+  notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status);
+
+  return updatedSchedule;
 };

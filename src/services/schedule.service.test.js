@@ -4,28 +4,38 @@ import {
   findScheduleByIdService,
   createScheduleService,
   updateScheduleService,
-  deleteScheduleService
+  deleteScheduleService,
+  deliverScheduleService
 } from './schedule.service.js';
 import * as scheduleRepository from '../repository/schedule.repository.js';
+import * as userRepository from '../repository/user.repository.js';
+import { notifyScheduleStatusChange } from '../utils/notification.utils.js';
 import { ResponseError } from '../errors/ResponseError.js';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 jest.mock('../repository/schedule.repository.js');
 jest.mock('../utils/log.utils.js');
+jest.mock('../repository/user.repository.js');
+jest.mock('../utils/notification.utils.js');
 
 describe('Schedule Service (schedule.service.js)', () => {
   let mockUser;
   beforeEach(() => {
     jest.clearAllMocks();
     mockUser = { cpf: '12345678901', type: 'MANAGER' };
+    userRepository.findUsersByType.mockResolvedValue([{ cpf: 'admin_cpf' }]);
+    notifyScheduleStatusChange.mockResolvedValue(true);
   });
 
   describe('listSchedulesService', () => {
     it('deve listar agendamentos com filtros de data e permissão de usuário', async () => {
-      const mockSchedules = [{ id: 1, client_cpf: '12345678901' }];
+      const mockSchedules = [{ id: 1, client_cpf: TEST_CPF_1 }];
       scheduleRepository.listSchedules.mockResolvedValue(mockSchedules);
 
       const query = { initial_date: '2023-01-01', final_date: '2023-01-31' };
-      const user = { type: 'CUSTOMER', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: TEST_CPF_1 };
 
       const result = await listSchedulesService(query, user);
 
@@ -44,12 +54,12 @@ describe('Schedule Service (schedule.service.js)', () => {
     });
 
     it('deve listar agendamentos filtrando pelo CPF do cliente', async () => {
-      const user = { type: 'CUSTOMER', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: TEST_CPF_1 };
       await listSchedulesService({}, user);
       expect(scheduleRepository.listSchedules).toHaveBeenCalledWith(
         expect.any(Date),
         expect.any(Date),
-        { client_cpf: '12345678901' }
+        { client_cpf: TEST_CPF_1 }
       );
     });
 
@@ -72,10 +82,10 @@ describe('Schedule Service (schedule.service.js)', () => {
 
   describe('findScheduleByIdService', () => {
     it('deve retornar o agendamento se o usuário tiver permissão', async () => {
-      const mockSchedule = { id: 1, client_cpf: '12345678901' };
+      const mockSchedule = { id: 1, client_cpf: TEST_CPF_1 };
       scheduleRepository.findScheduleById.mockResolvedValue(mockSchedule);
 
-      const user = { type: 'CUSTOMER', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: TEST_CPF_1 };
       const result = await findScheduleByIdService(1, user);
 
       expect(result.id).toBe(1);
@@ -85,7 +95,7 @@ describe('Schedule Service (schedule.service.js)', () => {
       const mockSchedule = { id: 1, client_cpf: '45678901234' };
       scheduleRepository.findScheduleById.mockResolvedValue(mockSchedule);
 
-      const user = { type: 'CUSTOMER', cpf: '12345678901' };
+      const user = { type: 'CUSTOMER', cpf: TEST_CPF_1 };
       await expect(findScheduleByIdService(1, user)).rejects.toThrow(ResponseError);
     });
 
@@ -114,7 +124,7 @@ describe('Schedule Service (schedule.service.js)', () => {
 
   describe('createScheduleService', () => {
     it('deve criar um agendamento com sucesso', async () => {
-      const data = { client_cpf: '12345678901', pet_id: 1, collaborator_cpf: '45678901234', date_time: '2023-10-10' };
+      const data = { client_cpf: TEST_CPF_1, pet_id: 1, collaborator_cpf: '45678901234', date_time: '2023-10-10' };
       scheduleRepository.createSchedule.mockResolvedValue({ id: 1, ...data });
 
       const result = await createScheduleService(data, mockUser);
@@ -147,6 +157,15 @@ describe('Schedule Service (schedule.service.js)', () => {
     it('deve lançar erro se não houver dados válidos para atualizar', async () => {
       await expect(updateScheduleService(1, { invalid: 'data' })).rejects.toThrow("Nenhum dado válido enviado para atualização");
     });
+
+    it('não deve enviar notificação se o status não foi alterado', async () => {
+      scheduleRepository.findScheduleById.mockResolvedValue({ id: 1, status: 'SCHEDULED', client_cpf: TEST_CPF_1 });
+      scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'SCHEDULED', observation: 'Nova obs', client_cpf: TEST_CPF_1 });
+
+      await updateScheduleService(1, { status: 'SCHEDULED', observation: 'Nova obs' });
+
+      expect(notifyScheduleStatusChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('deleteScheduleService', () => {
@@ -161,4 +180,22 @@ describe('Schedule Service (schedule.service.js)', () => {
       await expect(deleteScheduleService(1, mockUser)).rejects.toThrow("Agendamento não encontrado");
     });
   });
+
+  describe('deliverScheduleService', () => {
+    it('deve atualizar o status do agendamento para DELIVERED se ele existir', async () => {
+      scheduleRepository.findScheduleById.mockResolvedValue({ id: 1 });
+      scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'DELIVERED' });
+
+      const result = await deliverScheduleService(1);
+
+      expect(scheduleRepository.updateSchedule).toHaveBeenCalledWith(1, { status: 'DELIVERED' });
+      expect(result.status).toBe('DELIVERED');
+    });
+
+    it('deve lançar erro se o agendamento não existir ao marcar como DELIVERED', async () => {
+      scheduleRepository.findScheduleById.mockResolvedValue(null);
+      await expect(deliverScheduleService(1)).rejects.toThrow("Agendamento não encontrado");
+    });
+  });
 });
+

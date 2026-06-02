@@ -28,8 +28,14 @@ export const errorMiddleware = async (err, req, res, next) => {
     details: err.message,
   });
 
-  // Log de erros inesperados (importante para debug)
-  console.error(' [Unexpected Error]:', err);
+  // Log sanitizado: apenas campos seguros para evitar vazamento de dados sensíveis
+  // (queries SQL, stack traces com paths internos, dados do req.body, etc.)
+  console.error('[Unexpected Error]', {
+    message: err.message,
+    code: err.code,
+    path: req.path,
+    method: req.method,
+  });
 
   return res.status(500).json({
     error: 'Ocorreu um erro inesperado no servidor.'
