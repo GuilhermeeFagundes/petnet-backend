@@ -45,6 +45,7 @@ model user {
 
   administered_schedules schedule[] @relation("collaborator_schedules")
   client_schedules       schedule[] @relation("client_schedules")
+  notifications          notification[]
 }
 
 model password_reset_token {
@@ -217,4 +218,18 @@ enum schedule_status {
   CONFIRMED
   CANCELED
   FINISHED
+  DELIVERED
+}
+
+model notification {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.DateTime(0)
+  topic      String   @db.VarChar(100)
+  message    String   @db.Text
+  user_cpf   String   @db.Char(11)
+  viewed     Boolean  @default(false)
+
+  user       user     @relation(fields: [user_cpf], references: [cpf], onDelete: Cascade)
+
+  @@index([user_cpf])
 }

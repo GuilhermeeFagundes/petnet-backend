@@ -5,7 +5,8 @@ services:
     env_file:
       - .env.prod
     environment:
-      MYSQL_ROOT_HOST: "%"
+      # Restrito a localhost — root não aceita conexões externas
+      MYSQL_ROOT_HOST: "localhost"
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}

@@ -3,7 +3,7 @@ import { mapBlobToField, mapFieldToBlob } from "../utils/image.utils.js";
 import { sanitizeData } from "../utils/sanitize.utils.js";
 import { ResponseError } from "../errors/ResponseError.js";
 import { validateAndConvertEnums, translateEnums } from "../utils/enum.utils.js";
-import { cleanCpf } from "../utils/validators.utils.js";
+import { cleanCpf, validatePassword } from "../utils/validators.utils.js";
 import { UserEnums } from "../enums/user.enums.js";
 import {
     listUsers,
@@ -90,6 +90,11 @@ export const updateUserService = async (userCPF, fullData) => {
         throw new ResponseError("Usuário não cadastrado no sistema.", 404);
     }
 
+    // Impede atualização de usuário excluído logicamente
+    if (userExists.excluded_at) {
+        throw new ResponseError("Usuário inativo. Reative-o antes de atualizar.", 409);
+    }
+
     if (userData.email && userData.email !== userExists.email) {
         const emailTaken = await findUserByEmail(userData.email);
         if (emailTaken) {
@@ -98,6 +103,7 @@ export const updateUserService = async (userCPF, fullData) => {
     }
 
     if (userData.password) {
+        validatePassword(userData.password); // Garante política de senha também na atualização
         userData.password = await bcrypt.hash(userData.password, 10);
     }
 

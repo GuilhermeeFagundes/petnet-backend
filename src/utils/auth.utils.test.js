@@ -1,5 +1,8 @@
 import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals';
 import { isAdmin, isSelf, isCollaboratorOrAdmin } from './auth.utils.js';
+import { generateCpf } from "./test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
 
 describe('Auth Utils (auth.utils.js)', () => {
   describe('isAdmin', () => {
@@ -15,11 +18,11 @@ describe('Auth Utils (auth.utils.js)', () => {
 
   describe('isSelf', () => {
     it('deve retornar true se o CPF do usuário for igual ao CPF do parâmetro', () => {
-      expect(isSelf({ cpf: '12345678901' }, '12345678901')).toBe(true);
+      expect(isSelf({ cpf: TEST_CPF_1 }, TEST_CPF_1)).toBe(true);
     });
 
     it('deve retornar false se o CPF do usuário for diferente do CPF do parâmetro', () => {
-      expect(isSelf({ cpf: '12345678901' }, '45678901234')).toBe(false);
+      expect(isSelf({ cpf: TEST_CPF_1 }, '45678901234')).toBe(false);
     });
   });
 

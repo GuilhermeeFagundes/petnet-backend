@@ -1,6 +1,9 @@
 import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals';
 import { generateToken, verifyToken } from './jwt.utils.js';
 import jwt from 'jsonwebtoken';
+import { generateCpf } from "./test.utils.js";
+
+const TEST_CPF_2 = generateCpf();
 
 jest.mock('jsonwebtoken');
 
@@ -18,12 +21,12 @@ describe('JWT Utils (jwt.utils.js)', () => {
 
   describe('generateToken', () => {
     it('deve chamar jwt.sign com o payload e configurações corretas', () => {
-      const payload = { cpf: '12345678900', type: 'CUSTOMER' };
+      const payload = { cpf: TEST_CPF_2, type: 'CUSTOMER' };
       jwt.sign.mockReturnValue('token_mockado');
 
       const result = generateToken(payload);
 
-      expect(jwt.sign).toHaveBeenCalledWith(payload, 'secret', { expiresIn: '1h' });
+      expect(jwt.sign).toHaveBeenCalledWith(payload, 'secret', { expiresIn: '1h', algorithm: 'HS256' });
       expect(result).toBe('token_mockado');
     });
   });
@@ -31,12 +34,12 @@ describe('JWT Utils (jwt.utils.js)', () => {
   describe('verifyToken', () => {
     it('deve chamar jwt.verify com o token e segredo corretos', () => {
       const token = 'meu_token';
-      const mockDecoded = { cpf: '12345678900' };
+      const mockDecoded = { cpf: TEST_CPF_2 };
       jwt.verify.mockReturnValue(mockDecoded);
 
       const result = verifyToken(token);
 
-      expect(jwt.verify).toHaveBeenCalledWith(token, 'secret');
+      expect(jwt.verify).toHaveBeenCalledWith(token, 'secret', { algorithms: ['HS256'] });
       expect(result).toEqual(mockDecoded);
     });
 

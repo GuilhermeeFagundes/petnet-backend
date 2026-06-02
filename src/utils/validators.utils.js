@@ -39,12 +39,13 @@ export const parseId = (value, label = 'ID') => {
 };
 
 /**
- * Limpa um CPF removendo caracteres não numéricos e valida o comprimento.
- * Lança ResponseError 400 se não tiver 11 dígitos.
+ * Limpa um CPF removendo caracteres não numéricos, valida comprimento e
+ * verifica os dígitos verificadores pelo algoritmo mod-11.
+ * Lança ResponseError 400 se o CPF for inválido.
  *
  * @param {string} cpf - CPF com ou sem máscara
  * @returns {string} CPF limpo (apenas dígitos)
- * @throws {ResponseError} Se o CPF não tiver 11 dígitos
+ * @throws {ResponseError} Se o CPF for inválido
  */
 export const cleanCpf = (cpf) => {
     const digits = cpf.replace(/\D/g, '');
@@ -53,7 +54,43 @@ export const cleanCpf = (cpf) => {
         throw new ResponseError("CPF deve conter exatamente 11 dígitos", 400);
     }
 
+    // Rejeita sequências repetidas conhecidas (ex: 000.000.000-00, 111.111.111-11)
+    if (/^(\d)\1{10}$/.test(digits)) {
+        throw new ResponseError("CPF inválido.", 400);
+    }
+
+    // Valida os dois dígitos verificadores pelo algoritmo mod-11
+    const calcDigit = (cpfStr, length) => {
+        let sum = 0;
+        for (let i = 0; i < length; i++) {
+            sum += parseInt(cpfStr[i]) * (length + 1 - i);
+        }
+        const rem = (sum * 10) % 11;
+        return rem === 10 ? 0 : rem;
+    };
+
+    if (
+        calcDigit(digits, 9) !== parseInt(digits[9]) ||
+        calcDigit(digits, 10) !== parseInt(digits[10])
+    ) {
+        throw new ResponseError("CPF inválido.", 400);
+    }
+
     return digits;
+};
+
+/**
+ * Valida o formato de um endereço de e-mail.
+ * Lança ResponseError 400 se o formato for inválido.
+ *
+ * @param {string} email - E-mail a ser validado
+ * @throws {ResponseError} Se o e-mail não tiver formato válido
+ */
+export const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!email || !emailRegex.test(email)) {
+        throw new ResponseError('Formato de e-mail inválido.', 400);
+    }
 };
 
 /**

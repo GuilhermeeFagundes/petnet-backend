@@ -3,6 +3,10 @@ import { registerController, loginController, logoutController } from './auth.co
 import * as authService from '../services/auth.service.js';
 import * as cookieUtils from '../utils/cookie.utils.js';
 import { ResponseError } from '../errors/ResponseError.js';
+import { generateCpf } from "../utils/test.utils.js";
+
+const TEST_CPF_1 = generateCpf();
+const TEST_CPF_2 = generateCpf();
 
 // Mock dos services e dependências
 jest.mock('../services/auth.service.js');
@@ -23,8 +27,8 @@ describe('Auth Controller (auth.controller.js)', () => {
 
   describe('registerController', () => {
     it('deve realizar o registro, configurar o cookie e retornar status 201 com dados do usuário', async () => {
-      req.body = { cpf: '12345678900', email: 'teste@teste.com', name: 'João', password: 'SenhaForte1' };
-      const mockUser = { name: 'João', cpf: '12345678900' };
+      req.body = { cpf: TEST_CPF_2, email: 'teste@teste.com', name: 'João', password: 'SenhaForte1' };
+      const mockUser = { name: 'João', cpf: TEST_CPF_2 };
       const mockToken = 'meu_token_jwt';
       
       authService.registerService.mockResolvedValue({ token: mockToken, user: mockUser });
@@ -52,7 +56,7 @@ describe('Auth Controller (auth.controller.js)', () => {
 
   describe('loginController', () => {
     it('deve realizar login, configurar cookie e retornar status 200', async () => {
-      req.body = { email: 'teste@teste.com', password: '12345678901' };
+      req.body = { email: 'teste@teste.com', password: TEST_CPF_1 };
       const mockUser = { name: 'João' };
       const mockToken = 'token123';
 
@@ -60,7 +64,7 @@ describe('Auth Controller (auth.controller.js)', () => {
 
       await loginController(req, res);
 
-      expect(authService.loginService).toHaveBeenCalledWith('teste@teste.com', '12345678901');
+      expect(authService.loginService).toHaveBeenCalledWith('teste@teste.com', TEST_CPF_1);
       expect(res.cookie).toHaveBeenCalledWith('token', mockToken, cookieUtils.cookieOptions);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ message: 'Login realizado com sucesso.', user: mockUser });
