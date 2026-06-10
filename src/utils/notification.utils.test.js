@@ -3,10 +3,12 @@ import { sendNotification, notifyScheduleStatusChange } from './notification.uti
 import * as notificationService from '../services/notification.service.js';
 import * as scheduleRepository from '../repository/schedule.repository.js';
 import * as userRepository from '../repository/user.repository.js';
+import * as logUtils from './log.utils.js';
 
 jest.mock('../services/notification.service.js');
 jest.mock('../repository/schedule.repository.js');
 jest.mock('../repository/user.repository.js');
+jest.mock('./log.utils.js');
 
 describe('Notification Utils (notification.utils.js)', () => {
   beforeEach(() => {
@@ -22,21 +24,23 @@ describe('Notification Utils (notification.utils.js)', () => {
     expect(notificationService.createNotificationService).toHaveBeenCalledWith({
       user_cpf: '12345678901',
       topic: 'Test',
-      message: 'Message'
+      message: 'Message',
+      responsible: null
     });
     expect(result).toEqual(mockNotification);
   });
 
   it('deve retornar false e logar erro se a criação falhar', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     notificationService.createNotificationService.mockRejectedValue(new Error('Test Error'));
 
     const result = await sendNotification('12345678901', 'Test', 'Message');
 
     expect(result).toBe(false);
-    expect(consoleSpy).toHaveBeenCalledWith('[Notificação] Erro ao criar notificação interna: Test Error');
-    
-    consoleSpy.mockRestore();
+    expect(logUtils.sendLog).toHaveBeenCalledWith(expect.objectContaining({
+      entity: 'notification',
+      status: 'error',
+      details: 'Test Error'
+    }));
   });
 
   describe('notifyScheduleStatusChange', () => {
@@ -47,7 +51,7 @@ describe('Notification Utils (notification.utils.js)', () => {
 
       await notifyScheduleStatusChange(1, 'SCHEDULED');
       
-      expect(userRepository.findUsersByType).toHaveBeenCalledWith('ADMIN');
+      expect(userRepository.findUsersByType).toHaveBeenCalledWith('MANAGER');
       expect(notificationService.createNotificationService).toHaveBeenCalledWith(expect.objectContaining({
         user_cpf: 'admin_cpf',
         topic: 'Atualização de Agendamento',
@@ -63,8 +67,14 @@ describe('Notification Utils (notification.utils.js)', () => {
     it('não deve estourar erro caso a notificação falhe (DB Error)', async () => {
       scheduleRepository.findScheduleById.mockResolvedValue({ id: 1, client_cpf: '12345678901', date_time: '2023-10-10T10:00:00Z' });
       userRepository.findUsersByType.mockRejectedValue(new Error('DB error'));
-      
+
       await expect(notifyScheduleStatusChange(1, 'SCHEDULED')).resolves.not.toThrow();
+
+      expect(logUtils.sendLog).toHaveBeenCalledWith(expect.objectContaining({
+        entity: 'notification',
+        status: 'error',
+        details: 'DB error'
+      }));
     });
 
     it('não deve fazer nada se o agendamento não for encontrado', async () => {

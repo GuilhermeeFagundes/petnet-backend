@@ -61,8 +61,7 @@ export const createScheduleService = async (scheduleData, user) => {
   const newSchedule = await createSchedule(createData);
   await sendLog({ entity: 'schedule', action: 'create', status: 'success', responsible: user.cpf });
 
-  // Status inicial sempre notifica
-  notifyScheduleStatusChange(newSchedule.id, newSchedule.status);
+  notifyScheduleStatusChange(newSchedule.id, newSchedule.status, user.cpf);
 
   return newSchedule;
 };
@@ -106,7 +105,7 @@ export const updateScheduleService = async (id, scheduleData, user) => {
 
 
   if (updateData.status && updateData.status !== scheduleExists.status) {
-    notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status);
+    notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status, user.cpf);
   }
 
   return updatedSchedule;
@@ -122,7 +121,7 @@ export const deleteScheduleService = async (id, user) => {
   await sendLog({ entity: 'schedule', action: 'delete', status: 'success', responsible: user.cpf });
 };
 
-export const deliverScheduleService = async (id) => {
+export const deliverScheduleService = async (id, user) => {
   const scheduleExists = await findScheduleById(id);
   if (!scheduleExists) {
     throw new ResponseError("Agendamento não encontrado", 404);
@@ -130,7 +129,7 @@ export const deliverScheduleService = async (id) => {
 
   const updatedSchedule = await updateSchedule(id, { status: ScheduleEnums.find(e => e.key === 'status').values.DELIVERED });
 
-  notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status);
+  notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status, user?.cpf);
 
   return updatedSchedule;
 };

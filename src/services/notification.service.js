@@ -1,5 +1,6 @@
 import { ResponseError } from "../errors/ResponseError.js";
 import { cleanCpf } from "../utils/validators.utils.js";
+import { sendLog } from "../utils/log.utils.js";
 import { findUserByCpf } from "../repository/user.repository.js";
 import {
     findUnreadNotificationsByCpf,
@@ -14,10 +15,10 @@ export const listUnreadNotificationsService = async (userCPF) => {
 };
 
 export const createNotificationService = async (data) => {
-    const { user_cpf, topic, message } = data;
+    const { user_cpf, topic, message, responsible = null } = data;
 
     if (!user_cpf || !topic || !message) {
-        console.error("[Notificação] Campos obrigatórios ausentes: user_cpf, topic ou message.");
+        await sendLog({ entity: 'notification', action: 'create', status: 'error', responsible, details: 'Campos obrigatórios ausentes: user_cpf, topic ou message.' });
         return false;
     }
 
@@ -25,7 +26,7 @@ export const createNotificationService = async (data) => {
     const userExists = await findUserByCpf(cpf);
 
     if (!userExists) {
-        console.error(`[Notificação] Usuário com CPF ${cpf} não encontrado.`);
+        await sendLog({ entity: 'notification', action: 'create', status: 'error', responsible, details: `Usuário com CPF ${cpf} não encontrado.` });
         return false;
     }
 

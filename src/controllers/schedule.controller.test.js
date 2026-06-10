@@ -116,7 +116,7 @@ describe('Schedule Controller (schedule.controller.js)', () => {
 
       await deliverScheduleController(req, res);
 
-      expect(scheduleService.deliverScheduleService).toHaveBeenCalledWith(1);
+      expect(scheduleService.deliverScheduleService).toHaveBeenCalledWith(1, req.user);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalled();
     });

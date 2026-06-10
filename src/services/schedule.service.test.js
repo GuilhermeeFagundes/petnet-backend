@@ -125,12 +125,13 @@ describe('Schedule Service (schedule.service.js)', () => {
   describe('createScheduleService', () => {
     it('deve criar um agendamento com sucesso', async () => {
       const data = { client_cpf: TEST_CPF_1, pet_id: 1, collaborator_cpf: '45678901234', date_time: '2023-10-10' };
-      scheduleRepository.createSchedule.mockResolvedValue({ id: 1, ...data });
+      scheduleRepository.createSchedule.mockResolvedValue({ id: 1, status: 'SCHEDULED', ...data });
 
       const result = await createScheduleService(data, mockUser);
 
       expect(scheduleRepository.createSchedule).toHaveBeenCalled();
       expect(result.id).toBe(1);
+      expect(notifyScheduleStatusChange).toHaveBeenCalledWith(1, 'SCHEDULED', mockUser.cpf);
     });
 
     it('deve lançar erro se os dados forem inválidos', async () => {
@@ -140,13 +141,14 @@ describe('Schedule Service (schedule.service.js)', () => {
 
   describe('updateScheduleService', () => {
     it('deve atualizar o agendamento se ele existir', async () => {
-      scheduleRepository.findScheduleById.mockResolvedValue({ id: 1 });
+      scheduleRepository.findScheduleById.mockResolvedValue({ id: 1, status: 'SCHEDULED' });
       scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'FINISHED' });
 
       const result = await updateScheduleService(1, { status: 'FINISHED' }, mockUser);
 
       expect(scheduleRepository.updateSchedule).toHaveBeenCalled();
       expect(result.status).toBe('FINISHED');
+      expect(notifyScheduleStatusChange).toHaveBeenCalledWith(1, 'FINISHED', mockUser.cpf);
     });
 
     it('deve lançar erro se o agendamento não existir ao atualizar', async () => {
@@ -214,15 +216,16 @@ describe('Schedule Service (schedule.service.js)', () => {
       scheduleRepository.findScheduleById.mockResolvedValue({ id: 1 });
       scheduleRepository.updateSchedule.mockResolvedValue({ id: 1, status: 'DELIVERED' });
 
-      const result = await deliverScheduleService(1);
+      const result = await deliverScheduleService(1, mockUser);
 
       expect(scheduleRepository.updateSchedule).toHaveBeenCalledWith(1, { status: 'DELIVERED' });
       expect(result.status).toBe('DELIVERED');
+      expect(notifyScheduleStatusChange).toHaveBeenCalledWith(1, 'DELIVERED', mockUser.cpf);
     });
 
     it('deve lançar erro se o agendamento não existir ao marcar como DELIVERED', async () => {
       scheduleRepository.findScheduleById.mockResolvedValue(null);
-      await expect(deliverScheduleService(1)).rejects.toThrow("Agendamento não encontrado");
+      await expect(deliverScheduleService(1, mockUser)).rejects.toThrow("Agendamento não encontrado");
     });
   });
 });

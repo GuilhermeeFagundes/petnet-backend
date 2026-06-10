@@ -6,6 +6,7 @@ import {
 } from './notification.service.js';
 import * as notificationRepository from '../repository/notification.repository.js';
 import * as userRepository from '../repository/user.repository.js';
+import * as logUtils from '../utils/log.utils.js';
 import { ResponseError } from '../errors/ResponseError.js';
 import { generateCpf } from "../utils/test.utils.js";
 
@@ -13,6 +14,7 @@ const TEST_CPF_1 = generateCpf();
 
 jest.mock('../repository/notification.repository.js');
 jest.mock('../repository/user.repository.js');
+jest.mock('../utils/log.utils.js');
 
 describe('Notification Service (notification.service.js)', () => {
     beforeEach(() => {
@@ -48,23 +50,27 @@ describe('Notification Service (notification.service.js)', () => {
         });
 
         it('deve retornar false e logar erro se faltarem campos obrigatórios', async () => {
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
             const result = await createNotificationService({ topic: 'Promoção' });
-            
+
             expect(result).toBe(false);
-            expect(consoleSpy).toHaveBeenCalled();
-            consoleSpy.mockRestore();
+            expect(logUtils.sendLog).toHaveBeenCalledWith(expect.objectContaining({
+                entity: 'notification',
+                status: 'error',
+                details: 'Campos obrigatórios ausentes: user_cpf, topic ou message.'
+            }));
         });
 
         it('deve retornar false e logar erro se o usuário não for encontrado', async () => {
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
             userRepository.findUserByCpf.mockResolvedValue(null);
-            
+
             const result = await createNotificationService(validData);
-            
+
             expect(result).toBe(false);
-            expect(consoleSpy).toHaveBeenCalled();
-            consoleSpy.mockRestore();
+            expect(logUtils.sendLog).toHaveBeenCalledWith(expect.objectContaining({
+                entity: 'notification',
+                status: 'error',
+                details: expect.stringContaining('não encontrado')
+            }));
         });
     });
 
