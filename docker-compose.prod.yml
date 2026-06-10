@@ -1,7 +1,7 @@
 services:
   db:
     image: mysql:8.4
-    container_name: netcao-db-prod
+    container_name: netcao-db
     env_file:
       - .env.prod
     environment:
@@ -17,7 +17,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"
+          "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD",
         ]
       interval: 10s
       timeout: 5s
@@ -31,10 +31,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    container_name: netcao-api-prod
+    container_name: netcao-api
     restart: unless-stopped
     ports:
-      - "3000:3000"        # ← Traefik acessa via host network
+      - "3000:3000" # ← Traefik acessa via host network
     env_file:
       - .env.prod
     environment:
@@ -54,6 +54,7 @@ services:
       - "traefik.http.services.netcao-api.loadbalancer.server.port=3000"
     networks:
       - internal
+      - netcao
 
   test:
     build:
@@ -69,3 +70,5 @@ volumes:
 networks:
   internal:
     driver: bridge
+  netcao:
+    external: true
