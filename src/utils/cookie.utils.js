@@ -14,4 +14,5 @@ export const cookieOptions = {
   secure: isProduction,
   sameSite: isProduction ? 'none' : 'lax',
   maxAge: COOKIE_MAX_AGE,
+  domain: isProduction ? '.netcao.com.br' : undefined,
 };
