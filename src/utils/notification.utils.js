@@ -12,19 +12,19 @@ import { sendLog } from './log.utils.js';
  * @returns Retorna a notificação criada ou false em caso de erro.
  */
 export const sendNotification = async (userCpf, topic, message, responsibleCpf = null) => {
-    try {
-        const notification = await createNotificationService({
-            user_cpf: userCpf,
-            topic,
-            message,
-            responsible: responsibleCpf
-        });
+  try {
+    const notification = await createNotificationService({
+      user_cpf: userCpf,
+      topic,
+      message,
+      responsible: responsibleCpf
+    });
 
-        return notification;
-    } catch (error) {
-        await sendLog({ entity: 'notification', action: 'create', status: 'error', responsible: responsibleCpf, details: error.message });
-        return false;
-    }
+    return notification;
+  } catch (error) {
+    await sendLog({ entity: 'notification', action: 'create', status: 'error', responsible: responsibleCpf, details: error.message });
+    return false;
+  }
 };
 
 export const notifyScheduleStatusChange = async (scheduleId, statusEnumKey, responsibleCpf = null) => {
@@ -37,10 +37,16 @@ export const notifyScheduleStatusChange = async (scheduleId, statusEnumKey, resp
     const petName = schedule.pet?.name || 'seu pet';
 
     const dataAgendamento = new Date(schedule.date_time);
-    const dateFormatted = dataAgendamento.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+
+    // Extrai dia, mês, ano, hora e minuto da data ajustada para Brasília.
+    // O pad() adiciona zero à esquerda quando necessário (ex.: 5 → "05")
+    const pad = (n) => String(n).padStart(2, '0');
+    const brt = new Date(dataAgendamento.getTime() - 3 * 60 * 60 * 1000);
+    const data = `${pad(brt.getUTCDate())}/${pad(brt.getUTCMonth() + 1)}/${brt.getUTCFullYear()}`;
+    const hora = `${pad(brt.getUTCHours())}:${pad(brt.getUTCMinutes())}`;
 
     const topic = 'Atualização de Agendamento';
-    const message = `O agendamento para ${petName}, as ${dateFormatted} esta ${statusName}`;
+    const message = `O agendamento de ${petName} para ${data} às ${hora} está com o status: ${statusName}.`;
 
     const admins = await findUsersByType('MANAGER');
     const notifications = admins.map(admin => sendNotification(admin.cpf, topic, message, responsibleCpf));
