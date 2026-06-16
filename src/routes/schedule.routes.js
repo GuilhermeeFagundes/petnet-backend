@@ -18,9 +18,9 @@ scheduleRouter.delete('/:id', ensureAdmin, deleteScheduleController);
 scheduleRouter.put('/:id', ensureAdminOrCollaboratorOwner, updateScheduleController);
 scheduleRouter.patch('/:id/deliver', ensureAdminOrCollaboratorOwner, deliverScheduleController);
 
-// LIVRE ACESSO: confirmação pelo cliente via link externo
-scheduleRouter.patch('/:id/confirm', confirmScheduleController);
-// LIVRE ACESSO: alias GET para clique direto em link de e-mail (não é possível disparar PATCH via <a href>)
+// LIVRE ACESSO: confirmação pelo cliente via link clicável do e-mail de lembrete
+// (um clique em <a href> só dispara GET, por isso não há rota PATCH equivalente)
+// Responde com página HTML (e não JSON) para a navegação ficar transparente para o cliente
 scheduleRouter.get('/:id/confirm', confirmScheduleController);
 
 export default scheduleRouter;

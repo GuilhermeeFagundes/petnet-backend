@@ -124,21 +124,48 @@ describe('Schedule Controller (schedule.controller.js)', () => {
   });
 
   describe('confirmScheduleController', () => {
-    it('deve confirmar o agendamento e retornar status 200', async () => {
+    beforeEach(() => {
+      res.send = jest.fn();
+    });
+
+    it('deve confirmar o agendamento e responder com a página HTML de sucesso', async () => {
       req.params.id = '1';
-      const mockConfirmedSchedule = { id: 1, status: 'CONFIRMED' };
-      scheduleService.confirmScheduleService.mockResolvedValue(mockConfirmedSchedule);
+      scheduleService.confirmScheduleService.mockResolvedValue({ id: 1, status: 'CONFIRMED' });
 
       await confirmScheduleController(req, res);
 
       expect(scheduleService.confirmScheduleService).toHaveBeenCalledWith(1);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalled();
+      expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Agendamento confirmado!'));
     });
 
-    it('deve lançar ResponseError se o ID for inválido', async () => {
+    it('deve responder com a página HTML de erro e o httpCode da ResponseError quando o agendamento não existir', async () => {
+      req.params.id = '999';
+      scheduleService.confirmScheduleService.mockRejectedValue(new ResponseError('Agendamento não encontrado', 404));
+
+      await confirmScheduleController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Agendamento não encontrado'));
+    });
+
+    it('deve responder com a página HTML de erro genérico (400) quando o ID for inválido', async () => {
       req.params.id = 'abc';
-      await expect(confirmScheduleController(req, res)).rejects.toThrow(ResponseError);
+
+      await confirmScheduleController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(expect.stringContaining('ID do agendamento'));
+    });
+
+    it('deve responder com status 500 e mensagem genérica quando o erro não for uma ResponseError', async () => {
+      req.params.id = '1';
+      scheduleService.confirmScheduleService.mockRejectedValue(new Error('Falha inesperada de conexão'));
+
+      await confirmScheduleController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Ocorreu um erro inesperado ao confirmar o agendamento'));
     });
   });
 });

@@ -1141,39 +1141,6 @@
           "response": []
         },
         {
-          "name": "Confirm Schedule",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status 200 - Agendamento confirmado\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"Status é Confirmado\", () => {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json).to.have.property(\"status\");",
-                  "    pm.expect(json.status).to.equal(\"Confirmado\");",
-                  "});",
-                  "pm.test(\"Retorna o ID do agendamento\", () => {",
-                  "    pm.expect(pm.response.json()).to.have.property(\"id\");",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/schedules/{{scheduleId}}/confirm",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "schedules", "{{scheduleId}}", "confirm"]
-            },
-            "description": "Confirma um agendamento pelo cliente via link externo, definindo o status para `CONFIRMED`. **Rota pública** — sem autenticação.\n\nUse `scheduleId` capturado após Create Schedule."
-          },
-          "response": []
-        },
-        {
           "name": "Confirm Schedule (via link de e-mail)",
           "event": [
             {
@@ -1181,13 +1148,9 @@
               "script": {
                 "exec": [
                   "pm.test(\"Status 200 - Agendamento confirmado\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"Status é Confirmado\", () => {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json).to.have.property(\"status\");",
-                  "    pm.expect(json.status).to.equal(\"Confirmado\");",
-                  "});",
-                  "pm.test(\"Retorna o ID do agendamento\", () => {",
-                  "    pm.expect(pm.response.json()).to.have.property(\"id\");",
+                  "pm.test(\"Responde com página HTML (transparente para o cliente)\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+                  "    pm.expect(pm.response.text()).to.include(\"Agendamento confirmado!\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1202,7 +1165,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "schedules", "{{scheduleId}}", "confirm"]
             },
-            "description": "Alias GET da confirmação de agendamento, usado pelo link clicável do e-mail de lembrete (um clique em `<a href>` só dispara GET, nunca PATCH). Mesma regra de negócio do `Confirm Schedule`: define o status para `CONFIRMED`. **Rota pública** — sem autenticação.\n\nUse `scheduleId` capturado após Create Schedule."
+            "description": "Confirma um agendamento via link clicável do e-mail de lembrete, definindo o status para `CONFIRMED` (um clique em `<a href>` só dispara GET, por isso não há rota PATCH equivalente). Responde com uma página HTML de sucesso/erro (e não JSON), para a aba aberta pelo cliente ficar transparente. **Rota pública** — sem autenticação.\n\nUse `scheduleId` capturado após Create Schedule."
           },
           "response": []
         }

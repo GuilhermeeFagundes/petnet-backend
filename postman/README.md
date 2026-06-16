@@ -66,9 +66,9 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
    - ✅ **Sucesso**: Retorna o agendamento com status `SCHEDULED`.
 3. **Consultar Agenda**: `GET /api/schedules`
    - Aplicar filtros `initial_date` e `final_date`.
-4. **Confirmar pelo Cliente**: `PATCH /api/schedules/:id/confirm` (ou `GET` no mesmo path, usado pelo link clicável do e-mail de lembrete)
+4. **Confirmar pelo Cliente**: `GET /api/schedules/:id/confirm` (link clicável do e-mail de lembrete)
    - Rota pública (sem autenticação) — usada via link enviado ao cliente.
-   - Define o status para `CONFIRMED` e dispara notificação interna.
+   - Define o status para `CONFIRMED`, dispara notificação interna e responde com página HTML de sucesso/erro (não JSON), para a aba ficar transparente para o cliente.
 5. **Alterar (Admin/Colaborador)**: `PUT /api/schedules/:id`
    - Admin pode alterar qualquer campo; Colaborador só pode definir `FINISHED` ou `CONFIRMED`.
 6. **Cancelar**: `DELETE /api/schedules/:id` ou atualizar status para `CANCELED`.
@@ -78,10 +78,9 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
 ### 7. Casos de Teste Isolados — Agendamento
 | Cenário | Método/Endpoint | Auth | Resultado Esperado |
 | :--- | :--- | :--- | :--- |
-| **Confirmar agendamento** | `PATCH /api/schedules/:id/confirm` | Nenhuma | Status `CONFIRMED` + notificação (200). |
-| **Confirmar agendamento (via link de e-mail)** | `GET /api/schedules/:id/confirm` | Nenhuma | Status `CONFIRMED` + notificação (200). |
-| **ID inválido** | `PATCH /api/schedules/abc/confirm` | Nenhuma | Erro de ID inválido (400). |
-| **Agendamento inexistente** | `PATCH /api/schedules/999999/confirm` | Nenhuma | Agendamento não encontrado (404). |
+| **Confirmar agendamento (via link de e-mail)** | `GET /api/schedules/:id/confirm` | Nenhuma | Status `CONFIRMED` + notificação; responde com página HTML de sucesso/erro, não JSON (200). |
+| **ID inválido** | `GET /api/schedules/abc/confirm` | Nenhuma | Página HTML de erro (400). |
+| **Agendamento inexistente** | `GET /api/schedules/999999/confirm` | Nenhuma | Página HTML de erro: agendamento não encontrado (404). |
 
 ### 9. Notificações Internas
 | Cenário | Método/Endpoint | Objetivo | Resultado Esperado |
