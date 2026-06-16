@@ -6,7 +6,8 @@ import {
 import { requireFields, parseId } from "../utils/validators.utils.js";
 
 export const listServicesController = async (req, res) => {
-  const services = await listServicesService();
+  const inactive = req.query.inactive === 'true';
+  const services = await listServicesService({ inactive });
   return res.status(200).json(services);
 };
 

@@ -7,6 +7,11 @@ export const listServices = async () => {
   });
 }
 
+// List all services including inactive (soft-deleted)
+export const listAllServices = async () => {
+  return await prisma.service.findMany();
+}
+
 // Find service by ID (active only)
 export const findServiceById = async (serviceId) => {
   return await prisma.service.findFirst({

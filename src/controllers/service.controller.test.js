@@ -17,7 +17,7 @@ describe('Service Controller (service.controller.js)', () => {
   let req, res;
 
   beforeEach(() => {
-    req = { params: {}, body: {} };
+    req = { params: {}, body: {}, query: {} };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -26,15 +26,28 @@ describe('Service Controller (service.controller.js)', () => {
   });
 
   describe('listServicesController', () => {
-    it('deve listar serviços e retornar status 200', async () => {
+    it('deve listar serviços ativos e retornar status 200', async () => {
+      req.query = {};
       const mockServices = [{ id: 1, name: 'Banho' }];
       serviceService.listServicesService.mockResolvedValue(mockServices);
 
       await listServicesController(req, res);
 
-      expect(serviceService.listServicesService).toHaveBeenCalled();
+      expect(serviceService.listServicesService).toHaveBeenCalledWith({ inactive: false });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockServices);
+    });
+
+    it('deve listar todos os serviços quando inactive=true na query', async () => {
+      req.query = { inactive: 'true' };
+      const mockAll = [{ id: 1, name: 'Banho' }, { id: 2, name: 'Hidratação' }];
+      serviceService.listServicesService.mockResolvedValue(mockAll);
+
+      await listServicesController(req, res);
+
+      expect(serviceService.listServicesService).toHaveBeenCalledWith({ inactive: true });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockAll);
     });
   });
 

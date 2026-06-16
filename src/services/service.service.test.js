@@ -19,14 +19,29 @@ describe('Service Service (service.service.js)', () => {
   });
 
   describe('listServicesService', () => {
-    it('deve listar todos os serviços', async () => {
+    it('deve listar todos os serviços ativos por padrão', async () => {
       const mockServices = [{ id: 1, name: 'Banho' }];
       serviceRepository.listServices.mockResolvedValue(mockServices);
 
       const result = await listServicesService();
 
       expect(serviceRepository.listServices).toHaveBeenCalled();
+      expect(serviceRepository.listAllServices).not.toHaveBeenCalled();
       expect(result).toHaveLength(1);
+    });
+
+    it('deve listar todos os serviços (ativos e inativos) quando inactive=true', async () => {
+      const mockAll = [
+        { id: 1, name: 'Banho' },
+        { id: 2, name: 'Hidratação', excluded_at: new Date() }
+      ];
+      serviceRepository.listAllServices.mockResolvedValue(mockAll);
+
+      const result = await listServicesService({ inactive: true });
+
+      expect(serviceRepository.listAllServices).toHaveBeenCalled();
+      expect(serviceRepository.listServices).not.toHaveBeenCalled();
+      expect(result).toHaveLength(2);
     });
   });
 

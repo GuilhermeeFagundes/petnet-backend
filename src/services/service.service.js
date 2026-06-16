@@ -2,13 +2,13 @@ import { sanitizeData } from "../utils/sanitize.utils.js";
 import { mapBlobToField, mapFieldToBlob } from "../utils/image.utils.js";
 import { ResponseError } from "../errors/ResponseError.js";
 import {
-  listServices, findServiceById, createService, updateService, deleteService, reactivateService, clearServicePicture
+  listServices, listAllServices, findServiceById, createService, updateService, deleteService, reactivateService, clearServicePicture
 } from '../repository/service.repository.js';
 
 const ALLOWED_FIELDS = ["name", "description", "picture_blob"];
 
-export const listServicesService = async () => {
-  const services = await listServices();
+export const listServicesService = async ({ inactive = false } = {}) => {
+  const services = inactive ? await listAllServices() : await listServices();
   return services.map(service => mapBlobToField(service, 'servicePicture'));
 };
 
