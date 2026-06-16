@@ -1,31 +1,43 @@
 {
   "info": {
-    "_postman_id": "petnet-backend-collection",
+    "_postman_id": "petnet-backend-v2",
     "name": "PetNet API",
-    "description": "API para o sistema PetNet - Gestão de Pets e Usuários. Esta coleção contém todos os endpoints do projeto configurados com variáveis e dados realistas.",
+    "description": "Coleção completa da API PetNet — Sistema de Gestão de Pet Shop.\n\n**Como usar:**\n1. Faça Login (Gerente) para autenticar — o cookie é salvo automaticamente.\n2. Execute os requests na ordem das pastas para popular as variáveis via scripts de teste.\n3. Variáveis dinâmicas (petId, scheduleId, etc.) são capturadas automaticamente após cada criação.\n\n**Autenticação:** cookie HttpOnly (gerenciado automaticamente pelo Postman).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status 200 - Servidor online\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Resposta contém confirmação\", () => {",
+              "    const text = pm.response.text();",
+              "    pm.expect(text).to.include(\"PetNet\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
         "method": "GET",
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/healthcheck",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "healthcheck"
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": ["healthcheck"]
         },
-        "description": "Verifica se o servidor está online."
+        "description": "Verifica se o servidor está online. Rota pública, sem autenticação."
       },
       "response": []
     },
     {
       "name": "Auth",
+      "description": "Autenticação e recuperação de senha. O login define um cookie HttpOnly que é enviado automaticamente nas demais requisições.",
       "item": [
         {
           "name": "Register",
@@ -34,11 +46,15 @@
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test(\"Status 201 - Usuário criado\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Retorna dados do usuário\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"user\");",
+                  "    pm.expect(json.user).to.have.property(\"cpf\");",
+                  "});",
                   "if (pm.response.code === 201) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.user && response.user.cpf) {",
-                  "        pm.collectionVariables.set(\"clientCpf\", response.user.cpf);",
-                  "    }",
+                  "    const json = pm.response.json();",
+                  "    if (json.user?.cpf) pm.collectionVariables.set(\"clientCpf\", json.user.cpf);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -50,39 +66,37 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"cpf\": \"12345678901\",\n    \"password\": \"Senha@123\",\n    \"type\": \"Cliente\",\n    \"contact\": {\n        \"number\": \"{{$randomPhoneNumber}}\",\n        \"name\": \"Celular\"\n    },\n    \"address\": {\n        \"type\": \"Residencial\",\n        \"cep\": \"01001000\",\n        \"locaticion\": \"{{$randomStreetAddress}}\",\n        \"neighborhood\": \"Centro\",\n        \"address\": \"Rua Nova\",\n        \"number\": \"123\",\n        \"complement\": \"Apto 1\"\n    }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n    \"name\": \"João Silva\",\n    \"email\": \"joao.silva@email.com\",\n    \"cpf\": \"52998224725\",\n    \"password\": \"Senha@123\",\n    \"type\": \"Cliente\",\n    \"contact\": {\n        \"number\": \"11999990000\",\n        \"name\": \"Celular\"\n    },\n    \"address\": {\n        \"type\": \"Residencial\",\n        \"cep\": \"01001000\",\n        \"locaticion\": \"São Paulo\",\n        \"neighborhood\": \"Centro\",\n        \"address\": \"Rua Nova\",\n        \"number\": \"123\",\n        \"complement\": \"Apto 1\"\n    }\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "register"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
             },
-            "description": "Registra um novo usuário cliente no sistema."
+            "description": "Registra um novo usuário cliente. Rota pública com rate limit.\n\nApós sucesso, `clientCpf` é salvo automaticamente."
           },
           "response": []
         },
         {
-          "name": "Login",
+          "name": "Login (Gerente)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test(\"Status 200 - Login bem-sucedido\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados do usuário\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"user\");",
+                  "    pm.expect(json.user).to.have.property(\"cpf\");",
+                  "    pm.expect(json.user).to.have.property(\"type\");",
+                  "});",
                   "if (pm.response.code === 200) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.user && response.user.cpf) {",
-                  "        pm.collectionVariables.set(\"userCpf\", response.user.cpf);",
+                  "    const json = pm.response.json();",
+                  "    if (json.user?.cpf) {",
+                  "        pm.collectionVariables.set(\"userCpf\", json.user.cpf);",
+                  "        pm.collectionVariables.set(\"adminCpf\", json.user.cpf);",
                   "    }",
                   "}"
                 ],
@@ -96,310 +110,452 @@
             "body": {
               "mode": "raw",
               "raw": "{\n    \"email\": \"admin@petnet.com\",\n    \"password\": \"Senha@123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
             },
-            "description": "Autentica um usuário e define o cookie de token."
+            "description": "Autentica um Gerente e define o cookie de sessão.\n\nO cookie é gerenciado automaticamente pelo Postman. `userCpf` e `adminCpf` são capturados após o login."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Colaborador)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Login bem-sucedido\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Usuário é colaborador\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.user).to.have.property(\"cpf\");",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.user?.cpf) pm.collectionVariables.set(\"collaboratorCpf\", json.user.cpf);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"colaborador@petnet.com\",\n    \"password\": \"Senha@123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Autentica um Colaborador. Útil para testar endpoints com permissão `ensureAdminOrCollaboratorOwner`.\n\n`collaboratorCpf` é capturado após o login."
           },
           "response": []
         },
         {
           "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Logout realizado\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/auth/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
             },
-            "description": "Finaliza a sessão do usuário limpando o cookie de token."
+            "description": "Encerra a sessão limpando o cookie. Requer autenticação (`ensureAuthenticated`)."
           },
           "response": []
         },
         {
           "name": "Forgot Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - E-mail enviado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna mensagem de confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"email\": \"joao@email.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/forgot-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "forgot-password"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
             },
-            "description": "Solicita recuperação de senha por e-mail."
+            "description": "Solicita link de redefinição de senha por e-mail. Rota pública com rate limit.\n\nApós receber o e-mail, copie o token para a variável `resetToken`."
           },
           "response": []
         },
         {
           "name": "Reset Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Senha redefinida\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"token\": \"{{resetToken}}\",\n    \"password\": \"NovaSenha@123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/reset-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "reset-password"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
             },
-            "description": "Redefine a senha utilizando o token recebido por e-mail."
+            "description": "Redefine a senha usando o token recebido por e-mail. Rota pública com rate limit.\n\nDefina `resetToken` antes de executar."
           },
           "response": []
         }
-      ],
-      "description": "Endpoints de autenticação e recuperação de conta."
+      ]
     },
     {
-      "name": "Users",
+      "name": "Usuários",
+      "description": "Gerenciamento de usuários. A maioria dos endpoints exige autenticação; criação e listagem geral exigem perfil Gerente.",
       "item": [
         {
-          "name": "List All Users (Admin Only)",
+          "name": "List All Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna lista de usuários\", () => {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
             },
-            "description": "Lista todos os usuários. Requer privilégios de Administrador."
+            "description": "Lista todos os usuários não deletados. Requer perfil **Gerente** (`ensureAdmin`)."
           },
           "response": []
         },
         {
           "name": "Get User by CPF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna CPF correto\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"cpf\");",
+                  "    pm.expect(json).to.have.property(\"name\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/users/{{userCpf}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{userCpf}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userCpf}}"]
             },
-            "description": "Retorna os detalhes de um usuário específico."
+            "description": "Retorna os dados de um usuário pelo CPF. Requer ser o próprio usuário ou **Gerente** (`ensureAdminOrSelf`)."
           },
           "response": []
         },
         {
-          "name": "Create User (Admin Only)",
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 201 - Usuário criado\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Retorna dados do novo usuário\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"cpf\");",
+                  "    pm.expect(json).to.have.property(\"type\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"cpf\": \"12345678902\",\n    \"password\": \"Senha@123\",\n    \"type\": \"Colaborador\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n    \"name\": \"Maria Colaboradora\",\n    \"email\": \"maria.colaboradora@petnet.com\",\n    \"cpf\": \"11144477735\",\n    \"password\": \"Senha@123\",\n    \"type\": \"Colaborador\"\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
             },
-            "description": "Cria um novo usuário. Requer privilégios de Administrador."
+            "description": "Cria um novo usuário (Gerente ou Colaborador). Requer perfil **Gerente** (`ensureAdmin`)."
           },
           "response": []
         },
         {
           "name": "Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Usuário atualizado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados atualizados\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"cpf\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\",\n    \"address\": {\n        \"type\": \"Trabalho\",\n        \"cep\": \"12345678\",\n        \"locaticion\": \"{{$randomStreetAddress}}\",\n        \"neighborhood\": \"Bairro Comercial\",\n        \"address\": \"Avenida Central\",\n        \"number\": \"456\",\n        \"complement\": \"Sala 2\"\n    }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n    \"name\": \"João Silva Atualizado\",\n    \"address\": {\n        \"type\": \"Trabalho\",\n        \"cep\": \"04538132\",\n        \"locaticion\": \"São Paulo\",\n        \"neighborhood\": \"Itaim Bibi\",\n        \"address\": \"Av. Brigadeiro Faria Lima\",\n        \"number\": \"3477\",\n        \"complement\": \"Sala 10\"\n    }\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/users/{{userCpf}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{userCpf}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userCpf}}"]
             },
-            "description": "Atualiza os dados de um usuário."
+            "description": "Atualiza dados pessoais e endereço. Requer ser o próprio usuário ou **Gerente** (`ensureAdminOrSelf`)."
           },
           "response": []
         },
         {
           "name": "Delete User (Soft Delete)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Usuário removido\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna mensagem de confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/users/{{userCpf}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{userCpf}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userCpf}}"]
             },
-            "description": "Remove um usuário (soft delete)."
+            "description": "Realiza soft delete (define `excluded_at`). Requer ser o próprio usuário ou **Gerente** (`ensureAdminOrSelf`)."
           },
           "response": []
         },
         {
-          "name": "Reactivate User (Admin Only)",
+          "name": "Reactivate User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Usuário reativado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"excluded_at é nulo\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.excluded_at).to.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "PATCH",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/users/reactivate/{{userCpf}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "reactivate",
-                "{{userCpf}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "reactivate", "{{userCpf}}"]
             },
-            "description": "Reativa um usuário excluído. Requer privilégios de Administrador."
+            "description": "Reativa um usuário previamente deletado (limpa `excluded_at`). Requer perfil **Gerente** (`ensureAdmin`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear User Picture",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Foto removida\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna mensagem de confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userCpf}}/picture",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userCpf}}", "picture"]
+            },
+            "description": "Remove a foto de perfil do usuário (define o campo como nulo). Requer ser o próprio usuário ou **Gerente** (`ensureAdminOrSelf`)."
           },
           "response": []
         }
-      ],
-      "description": "Gerenciamento de usuários e perfis."
+      ]
     },
     {
       "name": "Pets",
+      "description": "Gerenciamento de pets. Criação e listagem geral por qualquer usuário autenticado; admin acessa todos.",
       "item": [
         {
-          "name": "List All Pets (Admin Only)",
+          "name": "List All Pets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna lista de pets\", () => {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/pets",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "pets"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pets"]
             },
-            "description": "Lista todos os pets cadastrados. Requer privilégios de Administrador."
+            "description": "Lista todos os pets cadastrados. Requer perfil **Gerente** (`ensureAdmin`)."
           },
           "response": []
         },
         {
           "name": "List My Pets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna lista de pets do usuário\", () => {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/pets/meus-pets",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "pets",
-                "meus-pets"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pets", "meus-pets"]
             },
-            "description": "Lista os pets pertencentes ao usuário autenticado."
+            "description": "Lista os pets do usuário autenticado. Requer autenticação (`ensureAuthenticated`)."
           },
           "response": []
         },
         {
           "name": "Get Pet by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados do pet\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json).to.have.property(\"name\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/pets/{{petId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "pets",
-                "{{petId}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pets", "{{petId}}"]
             },
-            "description": "Retorna os detalhes de um pet específico."
+            "description": "Retorna os dados de um pet. Requer ser o dono do pet ou **Gerente** (`ensureAdminOrPetOwner`)."
           },
           "response": []
         },
@@ -410,11 +566,15 @@
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test(\"Status 201 - Pet criado\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Retorna dados do pet\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json).to.have.property(\"name\");",
+                  "});",
                   "if (pm.response.code === 201) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.id) {",
-                  "        pm.collectionVariables.set(\"petId\", response.id);",
-                  "    }",
+                  "    const json = pm.response.json();",
+                  "    if (json.id) pm.collectionVariables.set(\"petId\", json.id);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -426,133 +586,187 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"user_cpf\": \"{{clientCpf}}\",\n    \"name\": \"Rex\",\n    \"species\": \"dog\",\n    \"breed\": \"Labrador\",\n    \"size\": \"L\",\n    \"birth_date\": \"2020-01-01T00:00:00Z\",\n    \"weight\": 30.5,\n    \"sex\": \"M\",\n    \"observations\": \"Muito dócil\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n    \"user_cpf\": \"{{clientCpf}}\",\n    \"name\": \"Rex\",\n    \"species\": \"dog\",\n    \"breed\": \"Labrador\",\n    \"size\": \"L\",\n    \"birth_date\": \"2020-01-15T00:00:00Z\",\n    \"weight\": 30.5,\n    \"sex\": \"M\",\n    \"observations\": \"Muito dócil, gosta de água\"\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/pets",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "pets"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pets"]
             },
-            "description": "Cadastra um novo pet associado a um usuário."
+            "description": "Cadastra um novo pet. Requer autenticação (`ensureAuthenticated`).\n\nApós sucesso, `petId` é capturado automaticamente."
           },
           "response": []
         },
         {
           "name": "Update Pet",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"Rex Atualizado\",\n    \"weight\": 32.0,\n    \"size\": \"L\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/pets/{{petId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "pets",
-                "{{petId}}"
-              ]
-            },
-            "description": "Atualiza os dados de um pet."
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Pet",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/pets/{{petId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "pets",
-                "{{petId}}"
-              ]
-            },
-            "description": "Remove um pet (soft delete)."
-          },
-          "response": []
-        }
-      ],
-      "description": "Gerenciamento de pets."
-    },
-    {
-      "name": "Services",
-      "item": [
-        {
-          "name": "List All Services (Open Route)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/services",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "services"
-              ]
-            },
-            "description": "Lista todos os serviços ativos oferecidos pelo PetNet."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Service by ID (Admin Only)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/services/{{serviceId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "services",
-                "{{serviceId}}"
-              ]
-            },
-            "description": "Retorna os detalhes de um serviço específico. Requer privilégios de Administrador."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Service (Admin Only)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test(\"Status 200 - Pet atualizado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados atualizados\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"id\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Rex Atualizado\",\n    \"weight\": 32.0,\n    \"observations\": \"Alérgico a frango\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pets/{{petId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pets", "{{petId}}"]
+            },
+            "description": "Atualiza dados do pet. Requer ser o dono ou **Gerente** (`ensureAdminOrPetOwner`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Pet (Soft Delete)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Pet removido\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna mensagem de confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pets/{{petId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pets", "{{petId}}"]
+            },
+            "description": "Remove um pet (soft delete). Requer ser o dono ou **Gerente** (`ensureAdminOrPetOwner`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Pet Picture",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Foto removida\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna mensagem de confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pets/{{petId}}/picture",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pets", "{{petId}}", "picture"]
+            },
+            "description": "Remove a foto do pet (define o campo como nulo). Requer ser o dono ou **Gerente** (`ensureAdminOrPetOwner`)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Serviços",
+      "description": "Catálogo de serviços. Listagem é pública; demais operações requerem Gerente.",
+      "item": [
+        {
+          "name": "List All Services",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna lista de serviços\", () => {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services"]
+            },
+            "description": "Lista todos os serviços ativos. **Rota pública** — sem autenticação."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Service by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados do serviço\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json).to.have.property(\"name\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "{{serviceId}}"]
+            },
+            "description": "Retorna os detalhes de um serviço. Requer perfil **Gerente** (`ensureAdmin`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 201 - Serviço criado\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Retorna dados do serviço\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json).to.have.property(\"name\");",
+                  "});",
                   "if (pm.response.code === 201) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.id) {",
-                  "        pm.collectionVariables.set(\"serviceId\", response.id);",
-                  "    }",
+                  "    const json = pm.response.json();",
+                  "    if (json.id) pm.collectionVariables.set(\"serviceId\", json.id);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -564,164 +778,219 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"Banho e Tosa Completo\",\n    \"description\": \"Banho relaxante com shampoo especial, tosa completa conforme padrão da raça, corte de unhas e limpeza de ouvidos.\",\n    \"servicePicture\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n    \"name\": \"Banho e Tosa Completo\",\n    \"description\": \"Banho com shampoo especial, tosa conforme padrão da raça, corte de unhas e limpeza de ouvidos.\"\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/services",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "services"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services"]
             },
-            "description": "Cria um novo tipo de serviço. Requer privilégios de Administrador."
+            "description": "Cria um novo serviço. Requer perfil **Gerente** (`ensureAdmin`).\n\nApós sucesso, `serviceId` é capturado automaticamente."
           },
           "response": []
         },
         {
-          "name": "Update Service (Admin Only)",
+          "name": "Update Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Serviço atualizado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados atualizados\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"id\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"name\": \"Banho e Tosa VIP\",\n    \"description\": \"Inclui hidratação de pelagem e perfume premium.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/services/{{serviceId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "services",
-                "{{serviceId}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "{{serviceId}}"]
             },
-            "description": "Atualiza os dados de um serviço existente. Requer privilégios de Administrador."
+            "description": "Atualiza um serviço. Requer perfil **Gerente** (`ensureAdmin`)."
           },
           "response": []
         },
         {
-          "name": "Delete Service (Soft Delete - Admin Only)",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/services/{{serviceId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "services",
-                "{{serviceId}}"
-              ]
-            },
-            "description": "Desativa um serviço (soft delete). Requer privilégios de Administrador."
-          },
-          "response": []
-        },
-        {
-          "name": "Reactivate Service (Admin Only)",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/services/{{serviceId}}/reactivate",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "services",
-                "{{serviceId}}",
-                "reactivate"
-              ]
-            },
-            "description": "Reativa um serviço desativado. Requer privilégios de Administrador."
-          },
-          "response": []
-        }
-      ],
-      "description": "Gerenciamento do catálogo de serviços."
-    },
-    {
-      "name": "Schedules",
-      "item": [
-        {
-          "name": "List Schedules",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/schedules?initial_date=2024-01-01T00:00:00.000Z&final_date=2024-12-31T23:59:59.000Z",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "schedules"
-              ],
-              "query": [
-                {
-                  "key": "initial_date",
-                  "value": "2024-01-01T00:00:00.000Z"
-                },
-                {
-                  "key": "final_date",
-                  "value": "2024-12-31T23:59:59.000Z"
-                }
-              ]
-            },
-            "description": "Lista os agendamentos. Clientes veem os seus, Colaboradores/Admin veem todos filtrados por data."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Schedule by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/schedules/{{scheduleId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "schedules",
-                "{{scheduleId}}"
-              ]
-            },
-            "description": "Retorna os detalhes de um agendamento específico."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Schedule (Admin Only)",
+          "name": "Delete Service (Soft Delete)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test(\"Status 200 - Serviço desativado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna mensagem de confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "{{serviceId}}"]
+            },
+            "description": "Desativa um serviço (soft delete). Requer perfil **Gerente** (`ensureAdmin`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Reactivate Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Serviço reativado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados do serviço\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"id\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/{{serviceId}}/reactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "{{serviceId}}", "reactivate"]
+            },
+            "description": "Reativa um serviço desativado. Requer perfil **Gerente** (`ensureAdmin`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Service Picture",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Foto removida\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna mensagem de confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/{{serviceId}}/picture",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "{{serviceId}}", "picture"]
+            },
+            "description": "Remove a imagem do serviço (define o campo como nulo). Requer perfil **Gerente** (`ensureAdmin`)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Agendamentos",
+      "description": "Gestão de agendamentos. Clientes veem apenas os seus; Colaboradores veem os atribuídos a eles; Gerentes veem todos.",
+      "item": [
+        {
+          "name": "List Schedules",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna lista de agendamentos\", () => {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules?initial_date=2026-01-01T00:00:00.000Z&final_date=2026-12-31T23:59:59.000Z",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules"],
+              "query": [
+                { "key": "initial_date", "value": "2026-01-01T00:00:00.000Z" },
+                { "key": "final_date",   "value": "2026-12-31T23:59:59.000Z" }
+              ]
+            },
+            "description": "Lista agendamentos filtrados por data. A filtragem por perfil ocorre no serviço. Requer autenticação (`ensureAuthenticated`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Schedule by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados do agendamento\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json).to.have.property(\"status\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules/{{scheduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "{{scheduleId}}"]
+            },
+            "description": "Retorna um agendamento pelo ID. Requer autenticação; acesso restrito ao próprio cliente, colaborador atribuído ou Gerente."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Schedule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 201 - Agendamento criado\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Retorna dados do agendamento\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json).to.have.property(\"status\");",
+                  "});",
                   "if (pm.response.code === 201) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.id) {",
-                  "        pm.collectionVariables.set(\"scheduleId\", response.id);",
-                  "    }",
+                  "    const json = pm.response.json();",
+                  "    if (json.id) pm.collectionVariables.set(\"scheduleId\", json.id);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -733,140 +1002,242 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"client_cpf\": \"{{clientCpf}}\",\n    \"pet_id\": {{petId}},\n    \"collaborator_cpf\": \"{{adminCpf}}\",\n    \"date_time\": \"{{$isoTimestamp}}\",\n    \"duration\": \"ONE_HOUR\",\n    \"status\": \"SCHEDULED\",\n    \"observation\": \"Cuidado extra com as patas\",\n    \"services\": [{{serviceId}}]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n    \"client_cpf\": \"{{clientCpf}}\",\n    \"pet_id\": {{petId}},\n    \"collaborator_cpf\": \"{{collaboratorCpf}}\",\n    \"date_time\": \"2026-07-15T10:00:00.000Z\",\n    \"duration\": \"ONE_HOUR\",\n    \"status\": \"SCHEDULED\",\n    \"observation\": \"Cuidado extra com as patas\",\n    \"services\": [{{serviceId}}]\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/schedules",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "schedules"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules"]
             },
-            "description": "Cria um novo agendamento. Requer privilégios de Administrador."
+            "description": "Cria um novo agendamento. Requer perfil **Gerente** (`ensureAdmin`).\n\nApós sucesso, `scheduleId` é capturado automaticamente."
           },
           "response": []
         },
         {
-          "name": "Update Schedule (Admin Only)",
+          "name": "Update Schedule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Agendamento atualizado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna dados atualizados\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json).to.have.property(\"status\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"date_time\": \"{{$isoTimestamp}}\",\n    \"duration\": \"THIRTY_MIN\",\n    \"status\": \"CONFIRMED\",\n    \"services\": [{{serviceId}}]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n    \"status\": \"CONFIRMED\",\n    \"observation\": \"Cliente confirmou por telefone\"\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "{{baseUrl}}/api/schedules/{{scheduleId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "schedules",
-                "{{scheduleId}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "{{scheduleId}}"]
             },
-            "description": "Atualiza os dados de um agendamento. Requer privilégios de Administrador."
+            "description": "Atualiza um agendamento. Requer **Gerente** ou **Colaborador dono do agendamento** (`ensureAdminOrCollaboratorOwner`).\n\nColaboradores só podem alterar o campo `status` (valores permitidos: `FINISHED`, `CONFIRMED`)."
           },
           "response": []
         },
         {
-          "name": "Delete Schedule (Admin Only)",
+          "name": "Update Schedule Status (Colaborador)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Status atualizado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Status reflete a atualização\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"status\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"FINISHED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules/{{scheduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "{{scheduleId}}"]
+            },
+            "description": "Atualiza apenas o status pelo Colaborador dono do agendamento. Valores permitidos: `FINISHED`, `CONFIRMED`.\n\nRequer estar logado como o colaborador atribuído ao agendamento."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Schedule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Agendamento excluído\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna mensagem de confirmação\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/schedules/{{scheduleId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "schedules",
-                "{{scheduleId}}"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "{{scheduleId}}"]
             },
-            "description": "Remove um agendamento. Requer privilégios de Administrador."
+            "description": "Remove um agendamento definitivamente. Requer perfil **Gerente** (`ensureAdmin`)."
           },
           "response": []
         },
         {
-          "name": "Entregar Pet (Deliver)",
+          "name": "Deliver Schedule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Pet entregue\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Status é Entregue\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"status\");",
+                  "    pm.expect(json.status).to.equal(\"Entregue\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "PATCH",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/schedules/1/deliver",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "schedules",
-                "1",
-                "deliver"
-              ]
+              "raw": "{{baseUrl}}/api/schedules/{{scheduleId}}/deliver",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "{{scheduleId}}", "deliver"]
             },
-            "description": "Marca o pet como entregue (Apenas ADMIN)"
+            "description": "Marca o pet como entregue ao tutor, definindo o status para `DELIVERED`. Requer **Gerente** ou **Colaborador dono do agendamento** (`ensureAdminOrCollaboratorOwner`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Schedule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Agendamento confirmado\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Status é Confirmado\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"status\");",
+                  "    pm.expect(json.status).to.equal(\"Confirmado\");",
+                  "});",
+                  "pm.test(\"Retorna o ID do agendamento\", () => {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"id\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/schedules/{{scheduleId}}/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schedules", "{{scheduleId}}", "confirm"]
+            },
+            "description": "Confirma um agendamento pelo cliente via link externo, definindo o status para `CONFIRMED`. **Rota pública** — sem autenticação.\n\nUse `scheduleId` capturado após Create Schedule."
           },
           "response": []
         }
-      ],
-      "description": "Gerenciamento de horários e serviços agendados."
+      ]
     },
     {
       "name": "Notificações",
+      "description": "Notificações do usuário autenticado. Criadas automaticamente pelo sistema em mudanças de status de agendamento.",
       "item": [
         {
-          "name": "Listar Não Lidas",
+          "name": "List Unread Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna lista de notificações\", () => {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.length > 0) pm.collectionVariables.set(\"notificationId\", json[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/notifications",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "notifications"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"]
             },
-            "description": "Retorna notificações do usuário atual"
+            "description": "Retorna as notificações não lidas do usuário autenticado. Requer autenticação (`ensureAuthenticated`).\n\nApós sucesso, `notificationId` é capturado automaticamente da primeira notificação."
           },
           "response": []
         },
         {
-          "name": "Marcar como Lida",
+          "name": "Mark Notification as Read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 - Notificação marcada como lida\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"viewed é true\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"viewed\");",
+                  "    pm.expect(json.viewed).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/notifications/1/read",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "notifications",
-                "1",
-                "read"
-              ]
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "{{notificationId}}", "read"]
             },
-            "description": "Marca uma notificação como lida"
+            "description": "Marca uma notificação como lida. Requer autenticação e ser o dono da notificação (`ensureAuthenticated`)."
           },
           "response": []
         }
@@ -874,23 +1245,42 @@
     },
     {
       "name": "Dashboard",
+      "description": "Métricas consolidadas para o painel gerencial. Acesso restrito a Gerentes.",
       "item": [
         {
-          "name": "Métricas Gerais",
+          "name": "Get Dashboard Metrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Retorna os 3 períodos\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"Diario\");",
+                  "    pm.expect(json).to.have.property(\"Mensal\");",
+                  "    pm.expect(json).to.have.property(\"Anual\");",
+                  "});",
+                  "pm.test(\"Período diário tem cards e fluxo\", () => {",
+                  "    const diario = pm.response.json().Diario;",
+                  "    pm.expect(diario).to.have.property(\"cards\");",
+                  "    pm.expect(diario).to.have.property(\"fluxo\");",
+                  "    pm.expect(diario.cards).to.have.lengthOf(4);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/dashboard",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "dashboard"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard"]
             },
-            "description": "Retorna métricas consolidadas (Diário, Mensal, Anual) para o Dashboard (Apenas ADMIN)"
+            "description": "Retorna métricas consolidadas (Diário, Mensal, Anual) para o painel administrativo. Requer perfil **Gerente** (`ensureAdmin`)."
           },
           "response": []
         }
@@ -905,38 +1295,57 @@
     },
     {
       "key": "adminCpf",
-      "value": "12345678901",
-      "type": "string"
+      "value": "",
+      "type": "string",
+      "description": "CPF do Gerente — preenchido automaticamente após Login (Gerente)"
+    },
+    {
+      "key": "collaboratorCpf",
+      "value": "",
+      "type": "string",
+      "description": "CPF do Colaborador — preenchido automaticamente após Login (Colaborador)"
     },
     {
       "key": "clientCpf",
-      "value": "10987654321",
-      "type": "string"
+      "value": "",
+      "type": "string",
+      "description": "CPF do Cliente — preenchido automaticamente após Register"
     },
     {
       "key": "userCpf",
-      "value": "12345678901",
-      "type": "string"
+      "value": "",
+      "type": "string",
+      "description": "CPF do último usuário autenticado — preenchido automaticamente após qualquer Login"
     },
     {
       "key": "petId",
       "value": "1",
-      "type": "string"
+      "type": "string",
+      "description": "ID do pet — preenchido automaticamente após Create Pet"
     },
     {
       "key": "serviceId",
       "value": "1",
-      "type": "string"
+      "type": "string",
+      "description": "ID do serviço — preenchido automaticamente após Create Service"
     },
     {
       "key": "scheduleId",
       "value": "1",
-      "type": "string"
+      "type": "string",
+      "description": "ID do agendamento — preenchido automaticamente após Create Schedule"
+    },
+    {
+      "key": "notificationId",
+      "value": "1",
+      "type": "string",
+      "description": "ID da notificação — preenchido automaticamente após List Unread Notifications"
     },
     {
       "key": "resetToken",
       "value": "",
-      "type": "string"
+      "type": "string",
+      "description": "Token de redefinição de senha — copiar do e-mail recebido após Forgot Password"
     }
   ]
 }

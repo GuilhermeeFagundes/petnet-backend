@@ -40,6 +40,7 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
 | **Acesso Negado** | `GET /api/users` | Cliente tentando listar todos | Erro de permissão (403). |
 | **Soft Delete** | `DELETE /api/users/:cpf` | Desativar conta | Usuário marcado como excluído (200). |
 | **Reativação** | `PATCH /api/users/reactivate/:cpf` | Restaurar conta | Usuário ativo novamente (200). |
+| **Remover Foto** | `DELETE /api/users/:cpf/picture` | Limpar foto de perfil | Foto removida (200). |
 
 ### 4. Gerenciamento de Pets
 | Cenário | Método/Endpoint | Objetivo | Resultado Esperado |
@@ -48,6 +49,7 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
 | **Listar Meus Pets** | `GET /api/pets/meus-pets` | Cliente vendo seus pets | Lista apenas os pets do usuário logado (200). |
 | **Ver Pet de Outro** | `GET /api/pets/:id` | Tentar ver pet de outro cliente | Erro de permissão (403). |
 | **Atualizar Dados** | `PUT /api/pets/:id` | Alterar peso ou observações | Dados atualizados no banco (200). |
+| **Remover Foto** | `DELETE /api/pets/:id/picture` | Limpar foto do pet | Foto removida (200). |
 
 ### 5. Catálogo de Serviços
 | Cenário | Método/Endpoint | Objetivo | Resultado Esperado |
@@ -55,6 +57,7 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
 | **Listar Públicos** | `GET /api/services` | Ver serviços disponíveis | Lista de serviços ativos (200). |
 | **Criar Serviço** | `POST /api/services` | Admin adicionar novo serviço | Serviço criado com descrição e imagem (201). |
 | **Desativar Serviço** | `DELETE /api/services/:id` | Remover do catálogo | Serviço com `excluded_at` preenchido (200). |
+| **Remover Foto** | `DELETE /api/services/:id/picture` | Limpar imagem do serviço | Foto removida (200). |
 
 ### 6. Fluxo de Agendamento (Completo)
 1. **Listar Serviços**: Identificar os IDs dos serviços desejados.
@@ -63,19 +66,29 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
    - ✅ **Sucesso**: Retorna o agendamento com status `SCHEDULED`.
 3. **Consultar Agenda**: `GET /api/schedules`
    - Aplicar filtros `initial_date` e `final_date`.
-4. **Confirmar/Alterar**: `PUT /api/schedules/:id`
-   - Mudar status para `CONFIRMED` ou `FINISHED`.
-5. **Cancelar**: `DELETE /api/schedules/:id` ou atualizar status para `CANCELED`.
-6. **Entregar Pet**: `PATCH /api/schedules/:id/deliver`
-   - Admin marcando que o pet foi entregue, disparando a notificação interna.
+4. **Confirmar pelo Cliente**: `PATCH /api/schedules/:id/confirm`
+   - Rota pública (sem autenticação) — usada via link enviado ao cliente.
+   - Define o status para `CONFIRMED` e dispara notificação interna.
+5. **Alterar (Admin/Colaborador)**: `PUT /api/schedules/:id`
+   - Admin pode alterar qualquer campo; Colaborador só pode definir `FINISHED` ou `CONFIRMED`.
+6. **Cancelar**: `DELETE /api/schedules/:id` ou atualizar status para `CANCELED`.
+7. **Entregar Pet**: `PATCH /api/schedules/:id/deliver`
+   - Admin ou Colaborador marcando que o pet foi entregue, disparando a notificação interna.
 
-### 7. Notificações Internas
+### 7. Casos de Teste Isolados — Agendamento
+| Cenário | Método/Endpoint | Auth | Resultado Esperado |
+| :--- | :--- | :--- | :--- |
+| **Confirmar agendamento** | `PATCH /api/schedules/:id/confirm` | Nenhuma | Status `CONFIRMED` + notificação (200). |
+| **ID inválido** | `PATCH /api/schedules/abc/confirm` | Nenhuma | Erro de ID inválido (400). |
+| **Agendamento inexistente** | `PATCH /api/schedules/999999/confirm` | Nenhuma | Agendamento não encontrado (404). |
+
+### 9. Notificações Internas
 | Cenário | Método/Endpoint | Objetivo | Resultado Esperado |
 | :--- | :--- | :--- | :--- |
 | **Listar Não Lidas** | `GET /api/notifications` | Ver avisos do usuário | Retorna array de notificações (200). |
 | **Marcar como Lida** | `PUT /api/notifications/:id/read` | Tirar o aviso de destaque | Notificação atualizada (200). |
 
-### 8. Dashboard (Admin)
+### 10. Dashboard (Admin)
 | Cenário | Método/Endpoint | Objetivo | Resultado Esperado |
 | :--- | :--- | :--- | :--- |
 | **Métricas Gerais** | `GET /api/dashboard` | Visualizar indicadores | JSON com os agrupamentos Diario, Mensal e Anual (200). |
