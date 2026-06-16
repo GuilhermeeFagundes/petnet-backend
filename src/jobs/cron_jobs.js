@@ -1,4 +1,5 @@
 import { sendScheduleRemindersService } from '../services/schedule_reminder.service.js';
+import { cancelOverdueSchedulesService } from '../services/schedule_auto_cancel.service.js';
 
 /**
  * Registro centralizado de todos os cron jobs do sistema.
@@ -19,8 +20,15 @@ export const CRON_JOBS = [
   {
     name: 'schedule-reminder',
     description: 'Envia e-mail de lembrete para agendamentos não confirmados ',
-    expression: '30 14 * * *', // todos os dias às 14h30
+    expression: '0 15 * * *', // todos os dias às 19h
     timezone: 'America/Sao_Paulo',
     handler: sendScheduleRemindersService,
+  },
+  {
+    name: 'schedule-auto-cancel',
+    description: 'Cancela automaticamente agendamentos ainda pendentes (status SCHEDULED) cujo horário já passou.',
+    expression: '0 18 * * *', // todos os dias às 18h
+    timezone: 'America/Sao_Paulo',
+    handler: cancelOverdueSchedulesService,
   },
 ];

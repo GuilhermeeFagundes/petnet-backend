@@ -80,3 +80,13 @@ export const findSchedulesForReminder = async (initialDate, finalDate) => {
     }
   });
 };
+
+export const cancelOverdueSchedules = async (now) => {
+  return await prisma.schedule.updateMany({
+    where: {
+      status: 'SCHEDULED',
+      date_time: { lt: now }
+    },
+    data: { status: 'CANCELED' }
+  });
+};
