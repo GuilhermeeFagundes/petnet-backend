@@ -59,28 +59,58 @@ export const createUser = async (userData, addressData, contactData) => {
     });
 }
 
-// Update dados pessoais do usuário
+// Update dados pessoais do usuário, sincronizando addresses/contacts a partir de arrays:
+// cada item é identificado por uma chave única por usuário ("type" em address, "name" em
+// contact) — se já existir, é atualizado (upsert); itens que não vierem no array são removidos.
 export const updateUser = async (userCPF, userData, addressData, contactData) => {
-    return await prisma.user.update({
-        where: { cpf: userCPF },
-        data: {
-            ...userData,
-
-            addresses: addressData ? {
-                deleteMany: {},
-                create: addressData
-            } : undefined,
-
-            contacts: contactData ? {
-                deleteMany: {},
-                create: contactData
-            } : undefined
-        },
-        include: {
-            addresses: true,
-            contacts: true
+    return await prisma.$transaction(async (tx) => {
+        if (userData) {
+            await tx.user.update({
+                where: { cpf: userCPF },
+                data: userData
+            });
         }
-    })
+
+        if (addressData) {
+            const types = addressData.map(({ type }) => type);
+
+            await tx.address.deleteMany({
+                where: { user_cpf: userCPF, type: { notIn: types } }
+            });
+
+            await Promise.all(addressData.map(item =>
+                tx.address.upsert({
+                    where: { user_cpf_type: { user_cpf: userCPF, type: item.type } },
+                    update: item,
+                    create: { ...item, user_cpf: userCPF }
+                })
+            ));
+        }
+
+        if (contactData) {
+            const names = contactData.map(({ name }) => name);
+
+            await tx.contact.deleteMany({
+                where: { user_cpf: userCPF, name: { notIn: names } }
+            });
+
+            await Promise.all(contactData.map(item =>
+                tx.contact.upsert({
+                    where: { user_cpf_name: { user_cpf: userCPF, name: item.name } },
+                    update: item,
+                    create: { ...item, user_cpf: userCPF }
+                })
+            ));
+        }
+
+        return await tx.user.findUnique({
+            where: { cpf: userCPF },
+            include: {
+                addresses: true,
+                contacts: true
+            }
+        });
+    });
 }
 
 // Soft delete de usuário

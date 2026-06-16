@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 import { mapBlobToField, mapFieldToBlob } from "../utils/image.utils.js";
-import { sanitizeData } from "../utils/sanitize.utils.js";
+import { sanitizeData, sanitizeDataList } from "../utils/sanitize.utils.js";
 import { ResponseError } from "../errors/ResponseError.js";
 import { validateAndConvertEnums, translateEnums } from "../utils/enum.utils.js";
-import { cleanCpf, validatePassword } from "../utils/validators.utils.js";
+import { cleanCpf, validatePassword, requireFields } from "../utils/validators.utils.js";
 import { UserEnums } from "../enums/user.enums.js";
 import {
     listUsers,
@@ -21,6 +21,16 @@ import { sendLog } from "../utils/log.utils.js";
 const ALLOWED_USER_FIELDS = ["cpf", "email", "name", "password", "type", "picture_blob"];
 const ALLOWED_ADDRESS_FIELDS = ["type", "cep", "locaticion", "neighborhood", "address", "number", "complement"];
 const ALLOWED_CONTACT_FIELDS = ["number", "name"];
+
+// Campos obrigatórios por item ao sincronizar arrays de address/contact na atualização.
+// "type" e "name" funcionam como chave única por usuário (find-or-update-or-create).
+const REQUIRED_ADDRESS_FIELDS = ["type", "cep", "locaticion", "neighborhood", "address", "number"];
+const REQUIRED_CONTACT_FIELDS = ["name"];
+
+// Garante que cada item do array tenha os campos mínimos para identificar e persistir o registro.
+const requireFieldsInEach = (items, fields) => {
+    items?.forEach(item => requireFields(item, fields));
+};
 
 export const listUsersService = async () => {
     const users = await listUsers();
@@ -78,14 +88,17 @@ export const updateUserService = async (userCPF, fullData) => {
     const userWithPicture = mapFieldToBlob({ ...user, userPicture }, 'userPicture');
 
     const userData = sanitizeData(["email", "name", "password", "type", "picture_blob"], userWithPicture);
-    const addressData = sanitizeData(ALLOWED_ADDRESS_FIELDS, address);
-    const contactData = sanitizeData(ALLOWED_CONTACT_FIELDS, contact);
+    const addressData = sanitizeDataList(ALLOWED_ADDRESS_FIELDS, address);
+    const contactData = sanitizeDataList(ALLOWED_CONTACT_FIELDS, contact);
 
     const cpf = cleanCpf(userCPF);
 
     if (!userData) {
         throw new ResponseError("Estrutura de dados inválida para atualização.", 400);
     }
+
+    requireFieldsInEach(addressData, REQUIRED_ADDRESS_FIELDS);
+    requireFieldsInEach(contactData, REQUIRED_CONTACT_FIELDS);
 
     validateAndConvertEnums(userData, UserEnums);
 

@@ -20,7 +20,6 @@ export const errorMiddleware = async (err, req, res, next) => {
   const rawEntity = fullPath.split('/').filter(segment => isNaN(segment) && segment !== '').pop() || 'unknown';
 
   await sendLog({
-    
     entity: entityMap[rawEntity] || rawEntity,
     action: req.method?.toLowerCase() || 'unknown',
     status: 'error',

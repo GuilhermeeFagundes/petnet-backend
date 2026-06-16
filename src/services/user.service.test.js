@@ -130,6 +130,55 @@ describe('User Service (user.service.js)', () => {
       expect(bcrypt.hash).toHaveBeenCalledWith('NewPassword123', 10);
       expect(result.status).toBeUndefined(); // translateEnums might not have translations here
     });
+
+    it('deve atualizar com sucesso enviando arrays de address e contact', async () => {
+      const existingUser = { cpf: TEST_CPF_1, email: 'o@o.com' };
+      const address = [
+        { type: 'Residencial', cep: '01001000', locaticion: 'São Paulo', neighborhood: 'Centro', address: 'Rua A', number: '1' },
+        { type: 'Trabalho', cep: '04538132', locaticion: 'São Paulo', neighborhood: 'Itaim', address: 'Av B', number: '2' }
+      ];
+      const contact = [
+        { name: 'Celular', number: '11999990000' },
+        { name: 'Casa', number: '1133334444' }
+      ];
+      userRepository.findUserByCpf.mockResolvedValue(existingUser);
+      userRepository.updateUser.mockResolvedValue({ ...existingUser, addresses: address, contacts: contact });
+
+      const result = await updateUserService(TEST_CPF_1, { name: 'Novo', address, contact });
+
+      expect(userRepository.updateUser).toHaveBeenCalledWith(TEST_CPF_1, { name: 'Novo' }, address, contact);
+      expect(result.addresses).toEqual(address);
+      expect(result.contacts).toEqual(contact);
+    });
+
+    it('deve atualizar com sucesso enviando apenas array de address (sem contact)', async () => {
+      const existingUser = { cpf: TEST_CPF_1, email: 'o@o.com' };
+      const address = [
+        { type: 'Residencial', cep: '01001000', locaticion: 'São Paulo', neighborhood: 'Centro', address: 'Rua A', number: '1' }
+      ];
+      userRepository.findUserByCpf.mockResolvedValue(existingUser);
+      userRepository.updateUser.mockResolvedValue({ ...existingUser, addresses: address });
+
+      await updateUserService(TEST_CPF_1, { name: 'Novo', address });
+
+      expect(userRepository.updateUser).toHaveBeenCalledWith(TEST_CPF_1, { name: 'Novo' }, address, null);
+    });
+
+    it('deve lançar erro 400 se um item do array de address estiver sem campo obrigatório', async () => {
+      userRepository.findUserByCpf.mockResolvedValue({ cpf: TEST_CPF_1, email: 'o@o.com' });
+      const address = [
+        { type: 'Residencial', locaticion: 'São Paulo', neighborhood: 'Centro', address: 'Rua A', number: '1' } // sem cep
+      ];
+
+      await expect(updateUserService(TEST_CPF_1, { name: 'Novo', address })).rejects.toThrow('Campos obrigatórios faltando: cep');
+    });
+
+    it('deve lançar erro 400 se um item do array de contact estiver sem o campo name', async () => {
+      userRepository.findUserByCpf.mockResolvedValue({ cpf: TEST_CPF_1, email: 'o@o.com' });
+      const contact = [{ number: '11999990000' }]; // sem name
+
+      await expect(updateUserService(TEST_CPF_1, { name: 'Novo', contact })).rejects.toThrow('Campos obrigatórios faltando: name');
+    });
   });
 
   describe('deleteUserService', () => {

@@ -70,6 +70,7 @@ model contact {
   user     user    @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_contact_user_cpf")
 
   @@index([user_cpf], map: "contact_user_cpf_idx")
+  @@unique([user_cpf, name], map: "contact_user_cpf_name_key")
 }
 
 // ------------------ ADDRESSES ------------------
@@ -86,6 +87,7 @@ model address {
   user         user    @relation(fields: [user_cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction, map: "fk_address_user_cpf")
 
   @@index([user_cpf], map: "address_user_cpf_idx")
+  @@unique([user_cpf, type], map: "address_user_cpf_type_key")
 }
 
 model pet {

@@ -370,7 +370,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"João Silva Atualizado\",\n    \"address\": {\n        \"type\": \"Trabalho\",\n        \"cep\": \"04538132\",\n        \"locaticion\": \"São Paulo\",\n        \"neighborhood\": \"Itaim Bibi\",\n        \"address\": \"Av. Brigadeiro Faria Lima\",\n        \"number\": \"3477\",\n        \"complement\": \"Sala 10\"\n    }\n}",
+              "raw": "{\n    \"name\": \"João Silva Atualizado\",\n    \"address\": [\n        {\n            \"type\": \"Trabalho\",\n            \"cep\": \"04538132\",\n            \"locaticion\": \"São Paulo\",\n            \"neighborhood\": \"Itaim Bibi\",\n            \"address\": \"Av. Brigadeiro Faria Lima\",\n            \"number\": \"3477\",\n            \"complement\": \"Sala 10\"\n        }\n    ],\n    \"contact\": [\n        {\n            \"name\": \"Celular\",\n            \"number\": \"11999990000\"\n        }\n    ]\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -378,7 +378,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "{{userCpf}}"]
             },
-            "description": "Atualiza dados pessoais e endereço. Requer ser o próprio usuário ou **Gerente** (`ensureAdminOrSelf`)."
+            "description": "Atualiza dados pessoais, endereços e contatos. `address` e `contact` são arrays: cada item é identificado por `type` (address) ou `name` (contact) — se já existir para o usuário, é atualizado; senão, é criado. Itens existentes que não forem reenviados são removidos (o front deve sempre reenviar a lista completa). Requer ser o próprio usuário ou **Gerente** (`ensureAdminOrSelf`)."
           },
           "response": []
         },
