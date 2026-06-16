@@ -66,7 +66,7 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
    - ✅ **Sucesso**: Retorna o agendamento com status `SCHEDULED`.
 3. **Consultar Agenda**: `GET /api/schedules`
    - Aplicar filtros `initial_date` e `final_date`.
-4. **Confirmar pelo Cliente**: `PATCH /api/schedules/:id/confirm`
+4. **Confirmar pelo Cliente**: `PATCH /api/schedules/:id/confirm` (ou `GET` no mesmo path, usado pelo link clicável do e-mail de lembrete)
    - Rota pública (sem autenticação) — usada via link enviado ao cliente.
    - Define o status para `CONFIRMED` e dispara notificação interna.
 5. **Alterar (Admin/Colaborador)**: `PUT /api/schedules/:id`
@@ -79,6 +79,7 @@ Este diretório contém a coleção oficial do Postman para a API PetNet e este 
 | Cenário | Método/Endpoint | Auth | Resultado Esperado |
 | :--- | :--- | :--- | :--- |
 | **Confirmar agendamento** | `PATCH /api/schedules/:id/confirm` | Nenhuma | Status `CONFIRMED` + notificação (200). |
+| **Confirmar agendamento (via link de e-mail)** | `GET /api/schedules/:id/confirm` | Nenhuma | Status `CONFIRMED` + notificação (200). |
 | **ID inválido** | `PATCH /api/schedules/abc/confirm` | Nenhuma | Erro de ID inválido (400). |
 | **Agendamento inexistente** | `PATCH /api/schedules/999999/confirm` | Nenhuma | Agendamento não encontrado (404). |
 

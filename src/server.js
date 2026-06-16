@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import { globalLimiter } from './middlewares/rate_limit.middleware.js';
+import { startScheduler } from './jobs/scheduler.js';
 
 // ─── Validação de Variáveis de Ambiente Críticas ───────────────────────────
 // A aplicação não deve iniciar se variáveis de segurança estiverem ausentes.
@@ -58,6 +59,9 @@ app.use('/api', routes);
 
 // O middleware de erro deve vir DEPOIS das rotas
 app.use(errorMiddleware);
+
+// Agendador de tarefas (cron jobs) — desligado em ambiente de teste
+if (process.env.NODE_ENV !== 'test') startScheduler();
 
 const PORT = process.env.PORT || 3000;
 

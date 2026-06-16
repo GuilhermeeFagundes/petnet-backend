@@ -1,5 +1,5 @@
-import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals';
-import { parseDateField, ensureDate } from './date.utils.js';
+import { jest, describe, it, expect, beforeEach, afterAll, afterEach } from '@jest/globals';
+import { parseDateField, ensureDate, getReminderDateRange } from './date.utils.js';
 import fc from 'fast-check';
 
 describe('Date Utils (date.utils.js)', () => {
@@ -63,6 +63,31 @@ describe('Date Utils (date.utils.js)', () => {
           return result1 === result2 && result1 instanceof Date;
         })
       );
+    });
+  });
+
+  describe('getReminderDateRange', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('deve retornar o momento atual como início e o fim do dia de amanhã em horário de Brasília (UTC-3)', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2024-03-15T15:00:00.000Z'));
+
+      const { start, end } = getReminderDateRange();
+
+      expect(start.toISOString()).toBe('2024-03-15T15:00:00.000Z');
+      expect(end.toISOString()).toBe('2024-03-17T02:59:59.999Z');
+    });
+
+    it('deve considerar a virada do dia em horário de Brasília, não em UTC, para calcular o fim do intervalo', () => {
+      // 2024-03-15T01:00:00Z ainda é 2024-03-14 22:00 em Brasília (UTC-3)
+      jest.useFakeTimers().setSystemTime(new Date('2024-03-15T01:00:00.000Z'));
+
+      const { start, end } = getReminderDateRange();
+
+      expect(start.toISOString()).toBe('2024-03-15T01:00:00.000Z');
+      expect(end.toISOString()).toBe('2024-03-16T02:59:59.999Z');
     });
   });
 });

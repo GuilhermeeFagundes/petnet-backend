@@ -39,6 +39,15 @@ Cada camada tem responsabilidade única e bem definida:
 - **KISS** — funções pequenas, com uma única responsabilidade
 - **DRY** — antes de criar uma função nova, verificar se já existe em `src/utils/`
 - **Clean Code** — nomes descritivos; comentários só quando o porquê não é óbvio
+- **Desestruturação** — extrair campos de objetos com `{}` em vez de encadear acessos (`obj.a.b`, `obj.a.c`) repetidos; melhora a legibilidade
+  ```js
+  // Evitar
+  const clientName = schedule.client.name
+  const email = schedule.client.email
+
+  // Preferir
+  const { client: { name: clientName, email } } = schedule
+  ```
 
 ## Convenções de nomenclatura
 
@@ -54,6 +63,7 @@ createPet, findPetById, findPetsByUserCpf, updatePet, deletePet
 ```
 
 - **JS:** camelCase para variáveis e funções
+- **Idioma dos identificadores:** sempre em inglês (variáveis, funções, parâmetros) — mesmo quando o conceito é em português (ex: `collaboratorName`, não `colaborador`). Textos para o usuário final (mensagens de erro, e-mails) e comentários continuam em português
 - **Banco:** snake_case para colunas (ex: `birth_date`, `user_cpf`)
 - **Constantes de campos permitidos** definidas no service:
   ```js
@@ -110,7 +120,12 @@ ensureAdminOrCollaboratorOwner // MANAGER ou colaborador dono do agendamento
 ### Estrutura dos arquivos
 - Colocalizados com o source: `src/controllers/pet.controller.test.js`
 - **Excluídos da cobertura:** repositories, routes, enums, `server.js`
-- **Meta:** 100% de cobertura nos arquivos elegíveis
+- **Cobertura: 100% LITERAL nos arquivos elegíveis — sem exceção.** As quatro métricas do
+  relatório (`% Stmts`, `% Branch`, `% Funcs`, `% Lines`) devem mostrar `100` para todo
+  arquivo novo ou modificado, sempre confirmado rodando `npm test` antes de encerrar a tarefa.
+  - Não arredondar, não aceitar "99.x% é suficiente", não deixar `Uncovered Line #s` preenchido
+  - Não usar `/* istanbul ignore */` ou comentários equivalentes para mascarar branches não testados
+  - Se uma branch (ex: fallback de valor `|| default`, `?.`, erro de catch) não tem teste, escrever o teste — nunca pular essa cobertura
 
 ### Estrutura de um teste
 
@@ -170,11 +185,22 @@ beforeEach(() => {
 
 ## Audit logging
 
-Todo service deve chamar `sendLog` após operações de escrita:
+Todo service deve chamar `sendLog` após operações de escrita — **sempre preenchendo `details`**
+com o que de fato aconteceu (não só `entity`/`action`/`status` genéricos). O log deve ser
+suficiente para entender a ação sem precisar olhar o código:
 
 ```js
-await sendLog({ entity: 'pet', action: 'create', status: 'success', responsible: user.cpf })
+await sendLog({
+  entity: 'pet',
+  action: 'create',
+  status: 'success',
+  responsible: user.cpf,
+  details: `Pet "${pet.name}" (id ${pet.id}) criado para o tutor ${user.cpf}`
+})
 ```
+
+- Em caso de erro, `details` deve descrever a falha (ex: mensagem do erro), nunca ficar vazio
+- Em loops/processamentos em lote (ex: jobs), logar o resumo da operação (quantos sucessos/falhas)
 
 ## Scripts
 
@@ -202,4 +228,5 @@ Nunca encerrar uma tarefa de endpoint sem essas duas atualizações.
 - Expor stack trace ou query SQL ao cliente
 - Escrever testes para repositories, routes ou enums (excluídos do jest.config.js)
 - Omitir `sendLog` em operações de escrita nos services
+- Chamar `sendLog` sem `details` (ou com `details` genérico que não diz o que aconteceu)
 - Criar endpoint sem atualizar `postman/petnet_collection.json` e `postman/README.md`

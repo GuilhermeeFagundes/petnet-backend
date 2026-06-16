@@ -20,5 +20,7 @@ scheduleRouter.patch('/:id/deliver', ensureAdminOrCollaboratorOwner, deliverSche
 
 // LIVRE ACESSO: confirmação pelo cliente via link externo
 scheduleRouter.patch('/:id/confirm', confirmScheduleController);
+// LIVRE ACESSO: alias GET para clique direto em link de e-mail (não é possível disparar PATCH via <a href>)
+scheduleRouter.get('/:id/confirm', confirmScheduleController);
 
 export default scheduleRouter;

@@ -65,3 +65,18 @@ export const deleteSchedule = async (id) => {
     where: { id: Number(id) }
   });
 };
+
+export const findSchedulesForReminder = async (initialDate, finalDate) => {
+  return await prisma.schedule.findMany({
+    where: {
+      date_time: { gte: initialDate, lte: finalDate },
+      status: 'SCHEDULED'
+    },
+    include: {
+      client: { select: { name: true, email: true } },
+      pet: { select: { name: true } },
+      collaborator: { select: { name: true } },
+      services: { select: { name: true } }
+    }
+  });
+};
