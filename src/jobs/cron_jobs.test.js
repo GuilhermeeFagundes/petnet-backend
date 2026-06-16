@@ -8,7 +8,7 @@ describe('Cron Jobs Registry (cron_jobs.js)', () => {
 
     expect(reminderJob).toEqual(expect.objectContaining({
       name: 'schedule-reminder',
-      expression: '0 14 * * *',
+      expression: '30 14 * * *',
       timezone: 'America/Sao_Paulo',
       handler: sendScheduleRemindersService
     }));
