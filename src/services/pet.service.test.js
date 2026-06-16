@@ -5,7 +5,8 @@ import {
   findPetByIdService,
   createPetService,
   updatePetService,
-  deletePetService
+  deletePetService,
+  clearPetPictureService
 } from './pet.service.js';
 import * as petRepository from '../repository/pet.repository.js';
 import { ResponseError } from '../errors/ResponseError.js';
@@ -112,6 +113,23 @@ describe('Pet Service (pet.service.js)', () => {
     it('deve lançar erro se o pet não existir ao tentar excluir', async () => {
       petRepository.findPetById.mockResolvedValue(null);
       await expect(deletePetService(1, mockUser)).rejects.toThrow('Pet não encontrado');
+    });
+  });
+
+  describe('clearPetPictureService', () => {
+    it('deve limpar a foto do pet com sucesso', async () => {
+      petRepository.findPetById.mockResolvedValue({ id: 1, name: 'Rex' });
+      petRepository.clearPetPicture.mockResolvedValue({ id: 1, picture_blob: null });
+
+      await clearPetPictureService(1, mockUser);
+
+      expect(petRepository.findPetById).toHaveBeenCalledWith(1);
+      expect(petRepository.clearPetPicture).toHaveBeenCalledWith(1);
+    });
+
+    it('deve lançar erro 404 se o pet não existir', async () => {
+      petRepository.findPetById.mockResolvedValue(null);
+      await expect(clearPetPictureService(1, mockUser)).rejects.toThrow(ResponseError);
     });
   });
 });

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  listServicesController, findServiceByIdController, createServiceController, updateServiceController, deleteServiceController, reactivateServiceController
+  listServicesController, findServiceByIdController, createServiceController, updateServiceController, deleteServiceController, reactivateServiceController, clearServicePictureController
 } from '../controllers/service.controller.js';
 import { ensureAdmin } from '../middlewares/auth.middleware.js';
 
@@ -11,6 +11,7 @@ serviceRouter.get('/:id', ensureAdmin, findServiceByIdController);        // adm
 serviceRouter.post('/', ensureAdmin, createServiceController);            // admin only
 serviceRouter.put('/:id', ensureAdmin, updateServiceController);          // admin only
 serviceRouter.delete('/:id', ensureAdmin, deleteServiceController);       // admin only
-serviceRouter.patch('/:id/reactivate', ensureAdmin, reactivateServiceController); // admin only
+serviceRouter.patch('/:id/reactivate', ensureAdmin, reactivateServiceController);       // admin only
+serviceRouter.delete('/:id/picture', ensureAdmin, clearServicePictureController);      // admin only
 
 export default serviceRouter;

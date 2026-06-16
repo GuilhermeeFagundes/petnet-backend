@@ -5,7 +5,8 @@ import {
   createServiceService,
   updateServiceService,
   deleteServiceService,
-  reactivateServiceService
+  reactivateServiceService,
+  clearServicePictureService
 } from './service.service.js';
 import * as serviceRepository from '../repository/service.repository.js';
 import { ResponseError } from '../errors/ResponseError.js';
@@ -94,6 +95,23 @@ describe('Service Service (service.service.js)', () => {
     it('deve reativar o serviço', async () => {
       await reactivateServiceService(1);
       expect(serviceRepository.reactivateService).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('clearServicePictureService', () => {
+    it('deve limpar a foto do serviço com sucesso', async () => {
+      serviceRepository.findServiceById.mockResolvedValue({ id: 1, name: 'Banho' });
+      serviceRepository.clearServicePicture.mockResolvedValue({ id: 1, picture_blob: null });
+
+      await clearServicePictureService(1);
+
+      expect(serviceRepository.findServiceById).toHaveBeenCalledWith(1);
+      expect(serviceRepository.clearServicePicture).toHaveBeenCalledWith(1);
+    });
+
+    it('deve lançar erro 404 se o serviço não existir', async () => {
+      serviceRepository.findServiceById.mockResolvedValue(null);
+      await expect(clearServicePictureService(1)).rejects.toThrow('Serviço não encontrado');
     });
   });
 });

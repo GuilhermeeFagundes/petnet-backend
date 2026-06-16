@@ -5,7 +5,8 @@ import {
   createServiceController,
   updateServiceController,
   deleteServiceController,
-  reactivateServiceController
+  reactivateServiceController,
+  clearServicePictureController
 } from './service.controller.js';
 import * as serviceService from '../services/service.service.js';
 import { ResponseError } from '../errors/ResponseError.js';
@@ -108,6 +109,19 @@ describe('Service Controller (service.controller.js)', () => {
       expect(serviceService.reactivateServiceService).toHaveBeenCalledWith(1);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ message: "Serviço reativado com sucesso" });
+    });
+  });
+
+  describe('clearServicePictureController', () => {
+    it('deve limpar a foto do serviço e retornar status 200', async () => {
+      req.params.id = '1';
+      serviceService.clearServicePictureService.mockResolvedValue();
+
+      await clearServicePictureController(req, res);
+
+      expect(serviceService.clearServicePictureService).toHaveBeenCalledWith(1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Foto do serviço removida com sucesso' });
     });
   });
 });

@@ -5,6 +5,7 @@ import {
     updateUserService,
     deleteUserService,
     reactivateUserService,
+    clearUserPictureService,
 } from "../services/user.service.js";
 import { requireFields, validateEmail } from "../utils/validators.utils.js";
 
@@ -42,4 +43,9 @@ export const deleteUserController = async (req, res) => {
 export const reactivateUserController = async (req, res) => {
     await reactivateUserService(req.params.user_cpf);
     return res.status(200).json({ message: "Usuário reativado com sucesso" });
+};
+
+export const clearUserPictureController = async (req, res) => {
+    await clearUserPictureService(req.params.user_cpf);
+    return res.status(200).json({ message: "Foto do usuário removida com sucesso" });
 };

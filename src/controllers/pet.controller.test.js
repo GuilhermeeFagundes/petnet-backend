@@ -109,4 +109,17 @@ describe('Pet Controller (pet.controller.js)', () => {
       expect(res.json).toHaveBeenCalledWith({ message: 'Pet excluído com sucesso' });
     });
   });
+
+  describe('clearPetPictureController', () => {
+    it('deve limpar a foto do pet pelo ID e retornar sucesso', async () => {
+      req.params.id = '5';
+      petService.clearPetPictureService.mockResolvedValue();
+
+      await petController.clearPetPictureController(req, res);
+
+      expect(petService.clearPetPictureService).toHaveBeenCalledWith(5, req.user);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Foto do pet removida com sucesso' });
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { listPetsService, findPetByIdService, createPetService, updatePetService, deletePetService, findPetsByUserService } from "../services/pet.service.js";
+import { listPetsService, findPetByIdService, createPetService, updatePetService, deletePetService, findPetsByUserService, clearPetPictureService } from "../services/pet.service.js";
 import { requireFields, parseId } from "../utils/validators.utils.js";
 
 export const findPetsByUserController = async (req, res) => {
@@ -34,4 +34,10 @@ export const deletePetController = async (req, res) => {
     const id = parseId(req.params.id, 'ID do pet');
     await deletePetService(id, req.user);
     return res.status(200).json({ message: "Pet excluído com sucesso" });
+};
+
+export const clearPetPictureController = async (req, res) => {
+    const id = parseId(req.params.id, 'ID do pet');
+    await clearPetPictureService(id, req.user);
+    return res.status(200).json({ message: "Foto do pet removida com sucesso" });
 };

@@ -127,4 +127,17 @@ describe('User Controller (user.controller.js)', () => {
       expect(res.json).toHaveBeenCalledWith({ message: 'Usuário reativado com sucesso' });
     });
   });
+
+  describe('clearUserPictureController', () => {
+    it('deve limpar a foto do usuário e retornar sucesso', async () => {
+      req.params.user_cpf = TEST_CPF_1;
+      userService.clearUserPictureService.mockResolvedValue();
+
+      await userController.clearUserPictureController(req, res);
+
+      expect(userService.clearUserPictureService).toHaveBeenCalledWith(TEST_CPF_1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Foto do usuário removida com sucesso' });
+    });
+  });
 });

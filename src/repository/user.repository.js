@@ -99,3 +99,10 @@ export const reactivateUser = async (userCPF) => {
     });
 }
 
+export const clearUserPicture = async (userCPF) => {
+    return await prisma.user.update({
+        where: { cpf: userCPF },
+        data: { picture_blob: null }
+    });
+}
+

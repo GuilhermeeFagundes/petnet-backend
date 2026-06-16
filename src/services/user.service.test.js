@@ -5,7 +5,8 @@ import {
   createUserService,
   updateUserService,
   deleteUserService,
-  reactivateUserService
+  reactivateUserService,
+  clearUserPictureService
 } from './user.service.js';
 import * as userRepository from '../repository/user.repository.js';
 import { ResponseError } from '../errors/ResponseError.js';
@@ -154,6 +155,23 @@ describe('User Service (user.service.js)', () => {
     it('deve lançar erro se o usuário não for encontrado para reativação', async () => {
       userRepository.findUserByCpf.mockResolvedValue(null);
       await expect(reactivateUserService(TEST_CPF_1)).rejects.toThrow('Usuário não cadastrado no sistema.');
+    });
+  });
+
+  describe('clearUserPictureService', () => {
+    it('deve limpar a foto do usuário com sucesso', async () => {
+      userRepository.findUserByCpf.mockResolvedValue({ cpf: TEST_CPF_1 });
+      userRepository.clearUserPicture.mockResolvedValue({ cpf: TEST_CPF_1, picture_blob: null });
+
+      await clearUserPictureService(TEST_CPF_1);
+
+      expect(userRepository.findUserByCpf).toHaveBeenCalledWith(TEST_CPF_1);
+      expect(userRepository.clearUserPicture).toHaveBeenCalledWith(TEST_CPF_1);
+    });
+
+    it('deve lançar erro 404 se o usuário não existir', async () => {
+      userRepository.findUserByCpf.mockResolvedValue(null);
+      await expect(clearUserPictureService(TEST_CPF_1)).rejects.toThrow('Usuário não cadastrado no sistema.');
     });
   });
 });

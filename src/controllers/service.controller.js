@@ -1,6 +1,7 @@
 import {
   listServicesService, findServiceByIdService, createServiceService,
   updateServiceService, deleteServiceService, reactivateServiceService,
+  clearServicePictureService,
 } from "../services/service.service.js";
 import { requireFields, parseId } from "../utils/validators.utils.js";
 
@@ -38,4 +39,10 @@ export const reactivateServiceController = async (req, res) => {
   const id = parseId(req.params.id, 'ID do serviço');
   await reactivateServiceService(id);
   return res.status(200).json({ message: "Serviço reativado com sucesso" });
+};
+
+export const clearServicePictureController = async (req, res) => {
+  const id = parseId(req.params.id, 'ID do serviço');
+  await clearServicePictureService(id);
+  return res.status(200).json({ message: "Foto do serviço removida com sucesso" });
 };

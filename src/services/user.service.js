@@ -12,7 +12,8 @@ import {
     createUser,
     updateUser,
     deleteUser,
-    reactivateUser
+    reactivateUser,
+    clearUserPicture
 } from '../repository/user.repository.js';
 
 import { sendLog } from "../utils/log.utils.js";
@@ -138,4 +139,16 @@ export const reactivateUserService = async (userCPF) => {
     }
 
     return await reactivateUser(cpf);
+};
+
+export const clearUserPictureService = async (userCPF) => {
+    const cpf = cleanCpf(userCPF);
+
+    const user = await findUserByCpf(cpf);
+    if (!user) {
+        throw new ResponseError("Usuário não cadastrado no sistema.", 404);
+    }
+
+    await clearUserPicture(cpf);
+    await sendLog({ entity: 'user', action: 'clear_picture', status: 'success', responsible: cpf });
 };

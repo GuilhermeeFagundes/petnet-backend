@@ -1,4 +1,4 @@
-import { listPets, findPetById, createPet, updatePet, deletePet, findPetsByUserCpf } from "../repository/pet.repository.js";
+import { listPets, findPetById, createPet, updatePet, deletePet, findPetsByUserCpf, clearPetPicture } from "../repository/pet.repository.js";
 import { sanitizeData } from "../utils/sanitize.utils.js";
 import { parseDateField } from "../utils/date.utils.js";
 import { mapBlobToField, mapFieldToBlob } from "../utils/image.utils.js";
@@ -73,4 +73,11 @@ export const deletePetService = async (petId, user) => {
     if (!pet) throw new ResponseError("Pet não encontrado", 404);
     await deletePet(petId);
     await sendLog({ entity: 'pet', action: 'delete', status: 'success', responsible: user.cpf });
+};
+
+export const clearPetPictureService = async (petId, user) => {
+    const pet = await findPetById(petId);
+    if (!pet) throw new ResponseError("Pet não encontrado", 404);
+    await clearPetPicture(petId);
+    await sendLog({ entity: 'pet', action: 'clear_picture', status: 'success', responsible: user.cpf });
 };

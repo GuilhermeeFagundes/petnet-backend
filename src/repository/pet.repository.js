@@ -44,6 +44,13 @@ export const deletePet = async (petId) => {
     });
 };
 
+export const clearPetPicture = async (petId) => {
+    return await prisma.pet.update({
+        where: { id: Number(petId) },
+        data: { picture_blob: null }
+    });
+};
+
 /**
  * Retorna somente o CPF do dono — usado pelo middleware de autorização.
  */

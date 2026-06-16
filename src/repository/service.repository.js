@@ -47,3 +47,10 @@ export const reactivateService = async (serviceId) => {
     data: { excluded_at: null }
   });
 }
+
+export const clearServicePicture = async (serviceId) => {
+  return await prisma.service.update({
+    where: { id: Number(serviceId) },
+    data: { picture_blob: null }
+  });
+}

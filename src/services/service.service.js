@@ -2,7 +2,7 @@ import { sanitizeData } from "../utils/sanitize.utils.js";
 import { mapBlobToField, mapFieldToBlob } from "../utils/image.utils.js";
 import { ResponseError } from "../errors/ResponseError.js";
 import {
-  listServices, findServiceById, createService, updateService, deleteService, reactivateService
+  listServices, findServiceById, createService, updateService, deleteService, reactivateService, clearServicePicture
 } from '../repository/service.repository.js';
 
 const ALLOWED_FIELDS = ["name", "description", "picture_blob"];
@@ -57,4 +57,10 @@ export const deleteServiceService = async (serviceId) => {
 
 export const reactivateServiceService = async (serviceId) => {
   await reactivateService(serviceId);
+};
+
+export const clearServicePictureService = async (serviceId) => {
+  const service = await findServiceById(serviceId);
+  if (!service) throw new ResponseError("Serviço não encontrado", 404);
+  await clearServicePicture(serviceId);
 };
