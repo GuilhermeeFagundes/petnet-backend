@@ -1,6 +1,6 @@
 import {
   listSchedulesService, findScheduleByIdService, createScheduleService,
-  updateScheduleService, deleteScheduleService, deliverScheduleService
+  updateScheduleService, deleteScheduleService, deliverScheduleService, confirmScheduleService
 } from "../services/schedule.service.js";
 import { translateEnums } from "../utils/enum.utils.js";
 import { ScheduleEnums } from "../enums/schedule.enums.js";
@@ -39,5 +39,11 @@ export const deleteScheduleController = async (req, res) => {
 export const deliverScheduleController = async (req, res) => {
   const id = parseId(req.params.id, 'ID do agendamento');
   const updatedSchedule = await deliverScheduleService(id, req.user);
+  return res.status(200).json(translateEnums(updatedSchedule, ScheduleEnums));
+};
+
+export const confirmScheduleController = async (req, res) => {
+  const id = parseId(req.params.id, 'ID do agendamento');
+  const updatedSchedule = await confirmScheduleService(id);
   return res.status(200).json(translateEnums(updatedSchedule, ScheduleEnums));
 };

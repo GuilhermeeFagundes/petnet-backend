@@ -133,3 +133,16 @@ export const deliverScheduleService = async (id, user) => {
 
   return updatedSchedule;
 };
+
+export const confirmScheduleService = async (id) => {
+  const scheduleExists = await findScheduleById(id);
+  if (!scheduleExists) {
+    throw new ResponseError("Agendamento não encontrado", 404);
+  }
+
+  const updatedSchedule = await updateSchedule(id, { status: ScheduleEnums.find(e => e.key === 'status').values.CONFIRMED });
+
+  notifyScheduleStatusChange(updatedSchedule.id, updatedSchedule.status, null);
+
+  return updatedSchedule;
+};

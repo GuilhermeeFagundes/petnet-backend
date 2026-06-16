@@ -5,7 +5,8 @@ import {
   createScheduleController,
   updateScheduleController,
   deleteScheduleController,
-  deliverScheduleController
+  deliverScheduleController,
+  confirmScheduleController
 } from './schedule.controller.js';
 import * as scheduleService from '../services/schedule.service.js';
 import { ResponseError } from '../errors/ResponseError.js';
@@ -119,6 +120,25 @@ describe('Schedule Controller (schedule.controller.js)', () => {
       expect(scheduleService.deliverScheduleService).toHaveBeenCalledWith(1, req.user);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalled();
+    });
+  });
+
+  describe('confirmScheduleController', () => {
+    it('deve confirmar o agendamento e retornar status 200', async () => {
+      req.params.id = '1';
+      const mockConfirmedSchedule = { id: 1, status: 'CONFIRMED' };
+      scheduleService.confirmScheduleService.mockResolvedValue(mockConfirmedSchedule);
+
+      await confirmScheduleController(req, res);
+
+      expect(scheduleService.confirmScheduleService).toHaveBeenCalledWith(1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+    });
+
+    it('deve lançar ResponseError se o ID for inválido', async () => {
+      req.params.id = 'abc';
+      await expect(confirmScheduleController(req, res)).rejects.toThrow(ResponseError);
     });
   });
 });
