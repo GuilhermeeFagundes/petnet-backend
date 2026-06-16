@@ -20,7 +20,7 @@ export const CRON_JOBS = [
   {
     name: 'schedule-reminder',
     description: 'Envia e-mail de lembrete para agendamentos não confirmados ',
-    expression: '30 15 * * *', // todos os dias às 19h
+    expression: '00 19 * * *', // todos os dias às 19h
     timezone: 'America/Sao_Paulo',
     handler: sendScheduleRemindersService,
   },
