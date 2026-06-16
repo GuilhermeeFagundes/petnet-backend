@@ -26,6 +26,7 @@ describe('Cookie Utils (cookie.utils.js)', () => {
     expect(cookieUtils.cookieOptions.httpOnly).toBe(true);
     expect(cookieUtils.cookieOptions.secure).toBe(true);
     expect(cookieUtils.cookieOptions.sameSite).toBe('none');
+    expect(cookieUtils.cookieOptions.domain).toBe('.netcao.com.br');
   });
 
   it('deve configurar secure=false e sameSite=lax em ambiente que não seja production', async () => {
@@ -39,5 +40,6 @@ describe('Cookie Utils (cookie.utils.js)', () => {
     expect(cookieUtils.cookieOptions.httpOnly).toBe(true);
     expect(cookieUtils.cookieOptions.secure).toBe(false);
     expect(cookieUtils.cookieOptions.sameSite).toBe('lax');
+    expect(cookieUtils.cookieOptions.domain).toBeUndefined();
   });
 });

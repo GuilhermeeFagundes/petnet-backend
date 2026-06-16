@@ -55,12 +55,12 @@ describe('Notification Utils (notification.utils.js)', () => {
       expect(notificationService.createNotificationService).toHaveBeenCalledWith(expect.objectContaining({
         user_cpf: 'admin_cpf',
         topic: 'Atualização de Agendamento',
-        message: expect.stringContaining('O agendamento para Rex, as')
+        message: expect.stringContaining('O agendamento de Rex para')
       }));
       expect(notificationService.createNotificationService).toHaveBeenCalledWith(expect.objectContaining({
         user_cpf: '12345678901',
         topic: 'Atualização de Agendamento',
-        message: expect.stringContaining('O agendamento para Rex, as')
+        message: expect.stringContaining('O agendamento de Rex para')
       }));
     });
 
@@ -93,10 +93,10 @@ describe('Notification Utils (notification.utils.js)', () => {
       expect(notificationService.createNotificationService).toHaveBeenCalledWith(expect.objectContaining({
         user_cpf: '12345678901',
         topic: 'Atualização de Agendamento',
-        message: expect.stringContaining('O agendamento para seu pet, as') // "seu pet" é o fallback
+        message: expect.stringContaining('O agendamento de seu pet para') // "seu pet" é o fallback
       }));
       expect(notificationService.createNotificationService).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('esta INVALID_STATUS') // INVALID_STATUS é o fallback do enum
+        message: expect.stringContaining('status: INVALID_STATUS') // INVALID_STATUS é o fallback do enum
       }));
     });
 
